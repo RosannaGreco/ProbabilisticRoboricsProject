@@ -1,0 +1,44 @@
+#parameters of cameras
+
+camera_num: 0
+K, camera_matrix
+120   0 320
+  0 120 240
+  0   0   1
+image_size: 640 480
+min_z: 0.1
+max_z: 30
+pose_on_robot [Transformation matrix]
+   0   -1    0    0
+   0    0   -1 -0.5
+   1    0    0    0
+   0    0    0    1
+
+camera_num: 1
+K, camera_matrix
+120   0 320
+  0 120 240
+  0   0   1
+image_size: 640 480
+min_z: 0.1
+max_z: 30
+pose_on_robot [Transformation matrix]
+  0  -1   0   0
+  0   0  -1 0.5
+  1   0   0   0
+  0   0   0   1
+
+camera_num: 2
+K, camera_matrix
+120   0 320
+  0 120 240
+  0   0   1
+image_size: 640 480
+min_z: 0.1
+max_z: 30
+pose_on_robot [Transformation matrix]
+  0  -1   0   0
+  0   0  -1   0
+  1   0   0 0.5
+  0   0   0   1
+
