@@ -3,11 +3,6 @@
 #output: for each measurement, we have a struct containing:
 #        epoch, cid, lid, pos (containing x and y on the image)
 
-
-
-
-
-
 function [epoch,measurements] = loadMeas(fid)
     measurements = [];
     line = fgetl(fid); #take new line
@@ -41,8 +36,14 @@ function [epoch,measurements] = loadMeas(fid)
                 measurements = [measurements; m];
     endfor
 
-
-
-
 end
 
+#
+function Z = matrix_from_measurements(measurements)
+    Z = nan(2,1000); #build a matrix considering all the landmarks
+    for i= 1:length(measurements);
+        m = measurements(i);
+        id = m.id + 1 
+        Z(:,id) = [m.x; m.y; 0]
+    endfor
+end

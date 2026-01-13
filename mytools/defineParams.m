@@ -1,6 +1,8 @@
 %this function defines three structs for the cameras, containing all the parameters
-%the data were copied from param.dat
-function[camera_parameters] = defineParams()
+%the data were copied from param.dat 
+#input: none
+#outpur: camera parameters, containing the three structs
+function[c0,c1,c2] = defineParams()
     camera_parameters = [];
 %-----------------------------------------
     c0 = struct();
@@ -13,7 +15,7 @@ function[camera_parameters] = defineParams()
             0    0   -1 -0.5;
             1    0    0    0;
             0    0    0    1];%transformation matrix
-    camera_parameters = [camera_parameters; c0];
+            
  %---------------------------------------
     c1= struct();
     c1.K = [ 120   0 320; 
@@ -25,7 +27,7 @@ function[camera_parameters] = defineParams()
            0   0  -1 0.5;
            1   0   0   0;
            0   0   0   1];
-    camera_parameters = [camera_parameters; c1];
+
 %---------------------------------------------------
     c2 = struct();
     c2.K = [120   0 320;
@@ -38,5 +40,5 @@ function[camera_parameters] = defineParams()
             0   0  -1   0;
             1   0   0 0.5;
             0   0   0   1];
-    camera_parameters = [camera_parameters; c2];
+   
 end
