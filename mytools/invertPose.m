@@ -1,6 +1,6 @@
 #this function takes a pose 
 #i.e. robot wrt world
-#and expresses it as
+#and expresses it as world wrt robot
 function x_inv = invertPose(x)
     t=x(1:3);      
     q=x(4:7);      

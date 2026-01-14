@@ -51,7 +51,4 @@ function q_new = quaternion_multiplication(q1,q2)
     q_new = q_new/norm(q_new); #normalize
 endfunction
 
-function x_inv = invert_pose(x)
-    t = x(1:3);
-    q = x(4:7);
-endfunction
+
