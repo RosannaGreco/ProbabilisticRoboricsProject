@@ -35,20 +35,20 @@ disp(x_guess);
 
 
 #function performing icp for one epoch
-function x_res = icpOneEpoch(fid,x_guess,P_world,cameras);
+function x_result = icpOneEpoch(fid,x_guess,P_world,cameras);
     [epoch,measurements] = loadMeas(fid); #load measurements
     epoch = epoch
     n_seen_points= length(measurements) 
     Z = measurements;
-    iterations=1;
+    iterations=100;
     #do icp
     [x_result] = doIcp(x_guess', P_world, Z, iterations, cameras);
     #display result
     disp('result (world wrt robot):')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_result'); 
     x_robotpose = invertPose(x_result);
-    disp('result (robot wrt world):')
-    fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_robotpose'); 
+    #disp('result (robot wrt world):')
+    #fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_robotpose'); 
 
 end
 
@@ -72,8 +72,11 @@ end
 #read file to get measurements
 fid = fopen('meas.dat', 'r');
 
-
-icpOneEpoch(fid,x_guess,P_world,cameras);
+for i=1:5
+    x_result = icpOneEpoch(fid,x_guess,P_world,cameras);
+    x_guess = x_result';
+    disp('---------------------------------------------')
+endfor
 
 #pc = testpoint(cameras,P_world);
 
