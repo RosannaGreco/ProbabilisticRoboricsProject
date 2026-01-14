@@ -31,6 +31,7 @@ x_robot_wrt_world=[0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
 #the world wrt the robot
 x_true = invertPose(x_robot_wrt_world);
 x_guess = x_true;
+disp(x_guess);
 
 
 #function performing icp for one epoch
@@ -39,7 +40,7 @@ function x_res = icpOneEpoch(fid,x_guess,P_world,cameras);
     epoch = epoch
     n_seen_points= length(measurements) 
     Z = measurements;
-    iterations=100;
+    iterations=1;
     #do icp
     [x_result] = doIcp(x_guess', P_world, Z, iterations, cameras);
     #display result

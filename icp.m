@@ -73,11 +73,11 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
       cid = m.cid;
       [e,J] = errorAndJacobian(x, P(:,id), z, cid, cameras); #compute e and J using above function
       #chi_stats(iteration)+=chi;
-
+     
       H+=J'*J;
       b+=J'*e;
     endfor
-    H+=eye(6)*1e-6; #adding damping factor
+    H+=eye(6); 
     dx=-H\b;
     #update translational part
     x(1:3) += dx(1:3); 
