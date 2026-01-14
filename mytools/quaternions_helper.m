@@ -3,6 +3,14 @@
 #output: rotation matrix R
 function [R] = rotationMatrixFromQuaternion(q_x,q_y,q_z,q_w);
     R = zeros(3,3); 
+    q = [q_x q_y q_z q_w];
+    q = q/norm(q);
+
+    q_x = q(1);
+    q_y = q(2);
+    q_z = q(3);
+    q_w = q(4);
+
     r11= 2*(q_w^2 + q_x^2) -1;
     r12 = 2*(q_x*q_y - q_w*q_z);
     r13 = 2*(q_x*q_z + q_w*q_y);
@@ -43,3 +51,7 @@ function q_new = quaternion_multiplication(q1,q2)
     q_new = q_new/norm(q_new); #normalize
 endfunction
 
+function x_inv = invert_pose(x)
+    t = x(1:3);
+    q = x(4:7);
+endfunction

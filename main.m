@@ -19,37 +19,62 @@ cameras = [c0,c1,c2]; #array of structs
 disp('camera parameters loaded');
 
 
-#initial guess for robot pose
-#ideal position of world w.r.t robot
-x_true=[0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
+#this is the robot wrt world
+x_robot_wrt_world=[0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
 #let's add a small offset
-x_offset = [0.2 0.2 0.2]'; #small translation
-q_offset = [0.0 0.0 0.008 0.9]'; #small rotation
-q_offset = q_offset/norm(q_offset);
-x_guess(1:3) = x_true(1:3) + x_offset;
-x_guess(4:7) = quaternion_multiplication(x_true(4:7), q_offset);
+#x_offset = [0.05; -0.03; 0.02];          
+#q_offset = [0.999; 0.025; -0.010; 0.015];
+#q_offset = q_offset/norm(q_offset);
+#x_guess(1:3) = x_true(1:3) + x_offset;
+#x_guess(4:7) = quaternion_multiplication(x_true(4:7), q_offset);
+#we use the function invertPose to obtain the pose of 
+#the world wrt the robot
+x_true = invertPose(x_robot_wrt_world);
+x_guess = x_true;
 
 
+#function performing icp for one epoch
+function x_res = icpOneEpoch(fid,x_guess,P_world,cameras);
+    [epoch,measurements] = loadMeas(fid); #load measurements
+    epoch = epoch
+    n_seen_points= length(measurements) 
+    Z = measurements;
+    iterations=100;
+    #do icp
+    [x_result] = doIcp(x_guess', P_world, Z, iterations, cameras);
+    #display result
+    disp('result (world wrt robot):')
+    fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_result'); 
+    x_robotpose = invertPose(x_result);
+    disp('result (robot wrt world):')
+    fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_robotpose'); 
 
+end
+
+#this function is used to perform a test on one of the points
+#with projectWorldPoints
+function p_c = testpoint(cameras,P_world)
+    x = [-0.0005 -0.0 -0.0 0.0 0.0 -0.0002 1.0]; #first pose, but
+    #espressed as world wrt robot
+    c = cameras(2);
+    p = P_world(:,27);
+    K = c.K;
+    T = c.T;
+    q = x(4:7);
+    R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+    t = x(1:3);
+    t = t(:);
+    disp(' correct point : 471.7487 126.9584')
+    p_c = projectWorldPoints(p,K,T,R,t)
+end
 #load epoch data--------------------------------------------------
 #read file to get measurements
 fid = fopen('meas.dat', 'r');
 
-#for each epoch
 
+icpOneEpoch(fid,x_guess,P_world,cameras);
 
-#load measurements
-[epoch,measurements] = loadMeas(fid);
-disp('new data loaded from cameras! :)')
-epoch = epoch
-n_seen_points= length(measurements) #number of measurements for this epoch
-
-Z = measurements; 
-iterations=100;
-[x_result] = doIcp(x_guess', P_world, Z, iterations, cameras);
-disp('result:')
-fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_result');
-    
+#pc = testpoint(cameras,P_world);
 
 
 

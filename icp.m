@@ -4,7 +4,10 @@ source "./mytools/cameras_helper.m"
 addpath('./mytools');
 
 
+
+
 function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
+
   t=x(1:3); #translation part
   q=x(4:7); #rotation part (quaternions)
   q=q/norm(q); #normalize quaternion
@@ -16,27 +19,24 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
   K = c.K;
   T = c.T;
   R_camera = T(1:3, 1:3);
+ 
   #prediction and error
-  p_hat = R*p + t; #translation and rotation of the robot
-  #translation and rotation of the camera wrt robot
-  p_hat_h = [p_hat; 1];         # convert p_hat in homogeneous coordinates
-  p_hat_h = T * p_hat_h;        # apply homogeneous transformation
-  p_hat = p_hat_h(1:3);         # back to 3d
-  
-  pcam_hat = K*p_hat; #apply K matrix
-  z_hat = projection(pcam_hat);#apply projection 
+
+  #project the world in camera coordinates using a function defined in the folder 'mytools'
+  #we also take p_camera frame, i.e. the point expressed in the camera frame (in 3 coordinates)
+  [z_hat,p_cameraframe] = projectWorldPoints(p,K,T,R,t);
   e=z_hat-z;          #error 
+  #disp(e)
 
   #JACOBIAN
   #Jproj computation (using a function defined in cameras_helper)     
-  Jproj = getJproj(p);
+  Jproj = getJproj(p_cameraframe);
   #Jicp computation (using a code similar to the one provided by the professor)
   Jicp = zeros(3,6);
-  Jicp(:,1:3)=R_camera;  #in this case, we have the rotation of the camera wrt the robot
-  px = skew(p);
-  Jicp(:,4:6) = -R_camera*R*px;
-  #in this case, we have R*p+t, because we have only one rotation matrix
-  #defined by the quaternions
+  Jicp(:,1:3)=eye(3); 
+  px = skew(p_cameraframe);
+  Jicp(:,4:6) = -px;
+  
   #final Jacobian
   J = Jproj*K*Jicp;
 
@@ -77,6 +77,7 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
       H+=J'*J;
       b+=J'*e;
     endfor
+    H+=eye(6)*1e-6; #adding damping factor
     dx=-H\b;
     #update translational part
     x(1:3) += dx(1:3); 
