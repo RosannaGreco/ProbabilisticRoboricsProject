@@ -21,17 +21,18 @@ disp('camera parameters loaded');
 
 #this is the robot wrt world
 x_robot_wrt_world=[0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
-#let's add a small offset
-#x_offset = [0.05; -0.03; 0.02];          
-#q_offset = [0.999; 0.025; -0.010; 0.015];
-#q_offset = q_offset/norm(q_offset);
-#x_guess(1:3) = x_true(1:3) + x_offset;
-#x_guess(4:7) = quaternion_multiplication(x_true(4:7), q_offset);
+
 #we use the function invertPose to obtain the pose of 
 #the world wrt the robot
 x_true = invertPose(x_robot_wrt_world);
-x_guess = x_true;
-disp(x_guess);
+x_guess = x_true
+#disp(x_guess);
+#let's add a small offset
+#x_offset = [8.05; -9.03; 9.02]';          
+#q_offset = [-0.0087; -0.0087; -0.0087; 0.9999]';
+#q_offset = q_offset/norm(q_offset);
+#x_guess(1:3) = x_true(1:3) + x_offset;
+#x_guess(4:7) = quaternion_multiplication(x_true(4:7), q_offset);
 
 
 #function performing icp for one epoch
@@ -47,8 +48,8 @@ function x_result = icpOneEpoch(fid,x_guess,P_world,cameras);
     disp('result (world wrt robot):')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_result'); 
     x_robotpose = invertPose(x_result);
-    #disp('result (robot wrt world):')
-    #fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_robotpose'); 
+    disp('result (robot wrt world):')
+    fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_robotpose'); 
 
 end
 
@@ -68,6 +69,12 @@ function p_c = testpoint(cameras,P_world)
     disp(' correct point : 471.7487 126.9584')
     p_c = projectWorldPoints(p,K,T,R,t)
 end
+
+
+
+
+
+
 #load epoch data--------------------------------------------------
 #read file to get measurements
 fid = fopen('meas.dat', 'r');

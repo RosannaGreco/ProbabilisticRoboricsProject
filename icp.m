@@ -24,10 +24,14 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
 
   #project the world in camera coordinates using a function defined in the folder 'mytools'
   #we also take p_camera frame, i.e. the point expressed in the camera frame (in 3 coordinates)
-  [z_hat,p_cameraframe] = projectWorldPoints(p,K,T,R,t);
-  e=z_hat-z;          #error 
-  #disp(e)
+  [z_hat,p_cameraframe,p_robotframe] = projectWorldPoints(p,K,T,R,t);
+     #error 
 
+  #scaling wrt pixel
+  #height and width are shared among cameras
+  width = 640;
+  height = 480;
+  e = [(z_hat(1)-z(1))/width; (z_hat(2)-z(2))/height];
   #JACOBIAN
   #Jproj computation (using a function defined in cameras_helper)     
   Jproj = getJproj(p_cameraframe);
@@ -48,13 +52,19 @@ endfunction
 #input: q (current value in quaternions), dtheta (rotation expressed wrt 3 angles)
 #output: q_update (updated quaternion)
 function [q_update] =quaternion_update(q,dtheta);
-  theta = norm(dtheta);
-  ax = dtheta/theta; #rotation axis
-  dq = [cos(theta/2); ax*sin(theta/2)]; #compute offset in terms of quaternions
+  if dtheta < 1e-6 #handling small rotations
+      dq = [1;0;0;0]; 
+  else
+    theta = norm(dtheta);
+    ax = dtheta/theta; #rotation axis
+    dq = [cos(theta/2); ax*sin(theta/2)]; #compute offset in terms of quaternions
+  end
   #updating values
   q_update = quaternion_multiplication(q,dq);
+  q_update = q_update/norm(q_update);
   
 endfunction
+
 
 
 function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
@@ -77,11 +87,12 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
       H+=J'*J;
       b+=J'*e;
     endfor
-    H+=eye(6); 
+    H+=eye(6);#*12; 
     dx=-H\b;
     #update translational part
     x(1:3) += dx(1:3); 
     #update rotational part using the function above
     x(4:7) = quaternion_update(x(4:7),dx(4:6)); 
+    
   endfor
 endfunction
