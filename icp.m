@@ -75,16 +75,6 @@ function [q_update] =quaternion_update(q,dtheta);
   
 endfunction
 
-#this function computes the adjoint of a matrix T
-function A = adjoint(T)
-    R = T(1:3,1:3);
-    t = T(1:3,4);
-    t_skew = [ 0    -t(3)  t(2);
-               t(3)  0    -t(1);
-              -t(2) t(1)  0  ];
-    A = [R, t_skew*R;
-          zeros(3,3), R];
-end
 
 
 function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
