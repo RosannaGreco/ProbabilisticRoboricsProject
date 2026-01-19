@@ -18,32 +18,42 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
   c = cameras(id+1); #note: cameras(1) is corresponds to camera id 0
   K = c.K;
   T = c.T;
-  R_camera = T(1:3, 1:3);
- 
-  #prediction and error
+  #translation and rotation of the camera wrt robot
+  T_inv = inv(T);
+  t_camera_robot = T_inv(1:3,4);
+  R_camera_robot = T_inv(1:3, 1:3); 
 
+  
+  #prediction and error
   #project the world in camera coordinates using a function defined in the folder 'mytools'
   #we also take p_camera frame, i.e. the point expressed in the camera frame (in 3 coordinates)
-  [z_hat,p_cameraframe,p_robotframe] = projectWorldPoints(p,K,T,R,t);
-     #error 
-
+  [z_hat,p_cam_hat,p_cameraframe] = projectWorldPoints(p,K,T,R,t);
+   
+  #ERROR----------------------------------------
   #scaling wrt pixel
   #height and width are shared among cameras
   width = 640;
   height = 480;
-  e = [(z_hat(1)-z(1))/width; (z_hat(2)-z(2))/height];
-  #JACOBIAN
+  d = diag([1/width, 1/height]);
+  #error (normalized in pixel)
+  e = d*(z_hat-z);
+  #JACOBIAN--------------------
+  #note:
+  #p_cam_hat = K*p_cameraframe
+  #p_cameraframe = X*p_world (with X transformation from camera to world)
+
   #Jproj computation (using a function defined in cameras_helper)     
-  Jproj = getJproj(p_cameraframe);
+  Jproj = getJproj(p_cam_hat); 
   #Jicp computation (using a code similar to the one provided by the professor)
   Jicp = zeros(3,6);
-  Jicp(:,1:3)=eye(3); 
+  Jicp(:,1:3)=eye(3);  
   px = skew(p_cameraframe);
-  Jicp(:,4:6) = -px;
+  Jicp(:,4:6) = -px; 
   
   #final Jacobian
   J = Jproj*K*Jicp;
-
+  #J = J; #multiplying by Adjoint matrix to go in the robot frame
+  
   
 endfunction
 
@@ -65,6 +75,16 @@ function [q_update] =quaternion_update(q,dtheta);
   
 endfunction
 
+#this function computes the adjoint of a matrix T
+function A = adjoint(T)
+    R = T(1:3,1:3);
+    t = T(1:3,4);
+    t_skew = [ 0    -t(3)  t(2);
+               t(3)  0    -t(1);
+              -t(2) t(1)  0  ];
+    A = [R, t_skew*R;
+          zeros(3,3), R];
+end
 
 
 function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
@@ -77,18 +97,28 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
     b=zeros(6,1);
     chi_stats(iteration)=0; 
     for (i=1:length(Z)) #we iterate on the struct containing the measurements
+      
       m = Z(i); #take single measurement
+      if m.cid != 2 #testing with a camera
+        continue;
+      endif
       id = m.lid + 1;#in the matrix P, landmark j is on the (j+1)th column
       z = [m.pos.x;m.pos.y]; #for now, let's discard the camera part blabla
       cid = m.cid;
+     
       [e,J] = errorAndJacobian(x, P(:,id), z, cid, cameras); #compute e and J using above function
       #chi_stats(iteration)+=chi;
      
+
       H+=J'*J;
+      
       b+=J'*e;
     endfor
-    H+=eye(6);#*12; 
+    H+=eye(6);
+   
     dx=-H\b;
+
+   
     #update translational part
     x(1:3) += dx(1:3); 
     #update rotational part using the function above

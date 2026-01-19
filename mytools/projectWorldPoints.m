@@ -5,7 +5,7 @@
 #   K, T of the camera 
 #   R,t robot rotation matrix and translation vector
 #output: p projected in the camera screen
-function[p_projected,p_cameraframe, p_robotframe] = projectWorldPoints(p,K,T,R,t)
+function[p_projected,pcam_hat, p_cameraframe] = projectWorldPoints(p,K,T,R,t)
     #point in the robot frame
     p_robotframe = R*p+t;
     #point in the camera frame

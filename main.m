@@ -26,6 +26,7 @@ x_robot_wrt_world=[0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
 #the world wrt the robot
 x_true = invertPose(x_robot_wrt_world);
 x_guess = x_true
+#x_guess = [-0.1005   0.1000       1        0        0  -0.0002   1.0000];
 #disp(x_guess);
 #let's add a small offset
 #x_offset = [8.05; -9.03; 9.02]';          
@@ -79,7 +80,7 @@ end
 #read file to get measurements
 fid = fopen('meas.dat', 'r');
 
-for i=1:5
+for i=1:1
     x_result = icpOneEpoch(fid,x_guess,P_world,cameras);
     x_guess = x_result';
     disp('---------------------------------------------')
