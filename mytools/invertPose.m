@@ -7,6 +7,7 @@ function x_inv = invertPose(x)
     q=q/norm(q); 
     #inverse rotation
     q_inv = [-q(1) -q(2) -q(3) q(4)];
+    q_inv = q_inv / norm(q_inv);
     R_inv = rotationMatrixFromQuaternion(q_inv(1),q_inv(2),q_inv(3),q_inv(4));
     #inverse translation
     t_inverse = -R_inv*t;

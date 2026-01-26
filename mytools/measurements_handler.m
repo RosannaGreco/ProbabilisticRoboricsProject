@@ -38,12 +38,3 @@ function [epoch,measurements] = loadMeas(fid)
 
 end
 
-#
-function Z = matrix_from_measurements(measurements)
-    Z = nan(2,1000); #build a matrix considering all the landmarks
-    for i= 1:length(measurements);
-        m = measurements(i);
-        id = m.id + 1 
-        Z(:,id) = [m.x; m.y; 0]
-    endfor
-end
