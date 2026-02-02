@@ -107,3 +107,4 @@ function q = quaternionFromRotationMatrix(R)
     q = [qx; qy; qz; qw];
     q = q / norm(q);
 end
+

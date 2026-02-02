@@ -1,6 +1,7 @@
 close all;
 clear; 
 clc;
+pkg load quaternion
 #source "./tools/utilities/geometry_helpers_3d.m"
 source "./mytools/quaternions_helper.m"
 source "./mytools/map_builder.m"
@@ -25,17 +26,10 @@ x_robot_wrt_world=[0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
 #we use the function invertPose to obtain the pose of 
 #the world wrt the robot
 x_true = invertPose(x_robot_wrt_world);
-x_guess = x_true
-#x_guess=[0.0008 0.0005 0.0005 -0.0034 -0.0034 0.0034 1.0000];
-#x_guess = [-0.005 0.002 -0.003 0.001 -0.002 -0.0005 0.99999];
-#x_guess = [-0.1005   0.1000       1        0        0  -0.0002   1.0000];
-#disp(x_guess);
-#let's add a small offset
-#x_offset = [8.05; -9.03; 9.02]';          
-#q_offset = [-0.0087; -0.0087; -0.0087; 0.9999]';
-#q_offset = q_offset/norm(q_offset);
-#x_guess(1:3) = x_true(1:3) + x_offset;
-#x_guess(4:7) = quaternion_multiplication(x_true(4:7), q_offset);
+#x_guess = x_true #for testing
+x_guess = [0 0 0 1 0 0 0];
+#x_guess =  [-0.0066   0.003        0.08        0        0  -0.0005   1.0000];
+
 
 
 #function performing icp for one epoch
@@ -44,7 +38,7 @@ function x_result = icpOneEpoch(fid,x_guess,P_world,cameras);
     epoch = epoch
     n_seen_points= length(measurements) 
     Z = measurements;
-    iterations=10;
+    iterations=100;
     #do icp
     [x_result] = doIcp(x_guess', P_world, Z, iterations, cameras);
     #display result

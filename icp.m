@@ -1,3 +1,4 @@
+
 source "./tools/utilities/geometry_helpers_3d.m"
 source "./mytools/quaternions_helper.m"
 source "./mytools/cameras_helper.m"
@@ -20,34 +21,33 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
   T = c.T;
   
 
-  
-  
   #prediction and error
   #project the world in camera coordinates using a function defined in the folder 'mytools'
   #we also take p_camera frame, i.e. the point expressed in the camera frame (in 3 coordinates)
   [z_hat,p_cam_hat,p_cameraframe,p_robotframe] = projectWorldPoints(p,K,T,R,t);
    
   #ERROR----------------------------------------
-  e = z_hat-z;
+  e = z_hat - z;
 
-  #pause(0.2)
+  
+  
   #JACOBIAN--------------------
   #note:
   #p_cam_hat = K*p_cameraframe
   #p_cameraframe = X*p_world (with X transformation from camera to world)
-
-  #Jproj computation (using a function defined in cameras_helper)     
-  Jproj = getJproj(p_cam_hat); 
-  #Jicp computation (using a code similar to the one provided by the professor)
-  Jicp = zeros(3,6);
-  Jicp(:,1:3)=eye(3);  
-  px = skew(p_cameraframe);
-  Jicp(:,4:6) = -px; 
   
-  #final Jacobian
+  #corrected: 
+  R_camera = T(1:3,1:3);
+  Jproj = getJproj(p_cam_hat) ;
+  Jicp(:,1:3) = R_camera';
+  px = skew(p_robotframe);
+  Jicp(:,4:6) = -(R_camera'*px);
   J = Jproj*K*Jicp;
 
   
+
+
+
   
 endfunction
 
@@ -91,13 +91,14 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
       cid = m.cid;
       
       [e,J] = errorAndJacobian(x, P(:,id), z, cid, cameras); #compute e and J using above function
-      #chi_stats(iteration)+=chi;
+      
      
-
+      e = e(:);
       H+=J'*J;  
       b+=J'*e;
       
     endfor
+    
     H+=eye(6);
     dx=-H\b;
     
