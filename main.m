@@ -56,6 +56,14 @@ function x_result = icpOneEpoch(fid, fid_traj_check,x_guess,P_world,cameras);
 
     #error between robot pose and gt 
     e = gt_pose - x_robotpose;
+
+    #handle quaternion representation
+    q_gt = gt_pose(4:7);
+    q_robotpose = x_robotpose(4:7);
+    if dot(q_gt, q_robotpose) < 0
+        q_robotpose_changed = -q_robotpose;
+        e(4:7) = q_gt-q_robotpose_changed;
+    end
     disp('trajectory error:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', e); 
 
@@ -71,7 +79,7 @@ fid_traj_check = fopen('traj.dat', 'r');
 
 
 
-for i=1:999
+for i=1:1000
     x_result = icpOneEpoch(fid,fid_traj_check,x_guess,P_world,cameras);
     x_guess = x_result';
     disp('---------------------------------------------')
