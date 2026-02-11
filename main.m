@@ -32,7 +32,7 @@ x_guess = [0 0 0 0 0 0 1];
 
 
 #function performing icp for one epoch
-function x_result = icpOneEpoch(fid, fid_traj_check,x_guess,P_world,cameras);
+function [x_result,x_robotpose] = icpOneEpoch(fid, fid_traj_check,x_guess,P_world,cameras);
     [epoch,measurements] = loadMeas(fid); #load measurements
     epoch = epoch
     n_seen_points= length(measurements) 
@@ -77,11 +77,15 @@ end
 #read file to get measurements
 fid = fopen('meas.dat', 'r');
 fid_traj_check = fopen('traj.dat', 'r');
+fid_write_poses = fopen('poses.dat','w'); #to write the obtained poses
 
-for i=1:999
-    x_result = icpOneEpoch(fid,fid_traj_check,x_guess,P_world,cameras);
+for i=1:1000
+    [x_result,x_robotpose] = icpOneEpoch(fid,fid_traj_check,x_guess,P_world,cameras);
     x_guess = x_result';
     disp('---------------------------------------------')
+    #print on file
+    fprintf(fid_write_poses, 'epoch: %d pose: %.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', i-1,x_robotpose(1),...
+    x_robotpose(2), x_robotpose(3), x_robotpose(4), x_robotpose(5), x_robotpose(6), x_robotpose(7));
 endfor
 
 
