@@ -27,13 +27,3 @@ function[p_projected,pcam_hat, p_cameraframe, p_robotframe] = projectWorldPoints
 
 end
 
-function [p_img] = projection(p)
-    p_img = p(1:2)/p(3);
-    
-   # xcam = p(1);
-   # ycam = p(2);
-   # zcam = p(3);
-   # x = xcam/zcam;
-   # y = ycam/zcam;
-   # p_img = [x;y];
-end

@@ -2,6 +2,7 @@
 source "./tools/utilities/geometry_helpers_3d.m"
 source "./mytools/quaternions_helper.m"
 source "./mytools/cameras_helper.m"
+source "./mytools/dataAssociation.m"
 addpath('./mytools');
 
 
@@ -67,23 +68,41 @@ endfunction
 
 function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
   x=x_guess; #initial guess
-  #chi_stats=zeros(1,num_iterations); #ignore this for now
-  num_inliers=zeros(1,num_iterations); #inliers computation
+  chi_stats=zeros(1,num_iterations); 
+  num_inliers=zeros(1,num_iterations); 
   kernel_threshold = 5;
   for (iteration=1:num_iterations)
    
    #init H and b
     H=zeros(6,6);
     b=zeros(6,1);
-    #chi_stats(iteration)=0; 
+    chi_stats(iteration)=0; 
    
+    #data association part
+    t = x(1:3);
+    q = x(4:7);
+    R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+    [P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCamera(P,cameras,R,t);
+    A = getAssociationMatrix(P_Proj_c0,P_Proj_c1,P_Proj_c2,Z,cameras,R,t);
+    associations = associateMeasurements(A,Z);
+    measurement_associated_lids = [];
+    for a=1:size(associations,1)
+        assoc = associations(a,:);
+        lid = assoc(2); #retrieve associated lid
+        measurement_associated_lids = [measurement_associated_lids; lid];
+    endfor
 
 
     for (i=1:length(Z)) #we iterate on the struct containing the measurements
       
       m = Z(i); #take single measurement
+
+      id = measurement_associated_lids(i);
+      if(id == 0) #if we didn't find an association
+        continue;
+      endif
       
-      id = m.lid + 1;#in the matrix P, landmark j is on the (j+1)th column
+      #id = m.lid + 1;#in the matrix P, landmark j is on the (j+1)th column
       
       z = [m.pos.x;m.pos.y]; 
       cid = m.cid;
@@ -92,16 +111,18 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
       
       
       #kernel treshold part-------------
-      #chi=e'*e
-      #if (chi>kernel_threshold)
-	     # e*=sqrt(kernel_threshold/chi);
-	      #chi=kernel_threshold;
-      #else
-	     # num_inliers(iteration)++;
-      #endif;
+      kernel_threshold = 1e9; 
+
+      chi=e'*e;
+      if (chi>kernel_threshold)
+	      e*=sqrt(kernel_threshold/chi);
+	      chi=kernel_threshold;
+      else
+	      num_inliers(iteration)++;
+      endif;
       #-----------------------------------
 
-      #chi_stats(iteration)+=chi;
+      chi_stats(iteration)+=chi;
      
       
       H+=J'*J;  

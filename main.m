@@ -7,6 +7,7 @@ source "./mytools/quaternions_helper.m"
 source "./mytools/map_builder.m"
 source "./mytools/measurements_handler.m"
 source "./icp.m"
+source "./mytools/dataAssociation.m"
 addpath('./mytools');
 
 #load data from the map and define Pworld
@@ -77,14 +78,53 @@ end
 fid = fopen('meas.dat', 'r');
 fid_traj_check = fopen('traj.dat', 'r');
 
-
-
-for i=1:1000
+for i=1:999
     x_result = icpOneEpoch(fid,fid_traj_check,x_guess,P_world,cameras);
     x_guess = x_result';
     disp('---------------------------------------------')
 endfor
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#testdistancemap
+#project points 
+#pose = [0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
+#x = invertPose(pose);
+#t = x(1:3);
+#q = x(4:7);
+#R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+#[P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCameraDistMap(P_world,cameras,R,t);
+#[D_c0,Parent_c0] = createDistanceMapNew(P_Proj_c0);
+#disp(Parent_c0(123,477));
+
+
+
+
+
+#try
+#[ cid: 0 lid: 26 imp: 477.0347 123.0206 ]
+#pose = [0 0 0 0 0 0 1]
+#t = pose(1:3);
+#q = pose(4:7);
+#R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+#[epoch,measurements] = loadMeas(fid);
+#Z = measurements;
+#A = getAssociationMatrix(P_world,Z,cameras,R,t);
+#a = associateMeasurements(A,Z)
+#likelihoods = computeLikelihood(P_world,ciccio,K,T,R,t)
 
 
 
