@@ -101,6 +101,7 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
         continue;
       endif
       
+      #decomment the line below to test the code with data association known
       #id = m.lid + 1;#in the matrix P, landmark j is on the (j+1)th column
       
       z = [m.pos.x;m.pos.y]; 

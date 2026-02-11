@@ -1,3 +1,5 @@
+#This file contains functions useful to work with the quaternions
+
 #this function takes in input quaterions and returns a rotation matrix
 #input: qx qy qz qw
 #output: rotation matrix R

@@ -1,7 +1,7 @@
 
 
 #input: 
-#  -p in world coordinates
+#   p in world coordinates
 #   K, T of the camera 
 #   R,t robot rotation matrix and translation vector
 #output: p projected in the camera screen

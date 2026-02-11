@@ -3,11 +3,16 @@ addpath('./mytools');
 
 
 #project all the points in each camera (considering the pose)
+#input:
+# -P 
+# -cameras struct 
+# R rotation matrix of the pose (world wrt robot)
+# t translational part of the pose (world wrt robot)
+#output: 
+# P_Proj_c0, P_Proj_c1, P_Proj_c2
 function [P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCamera(P,cameras,R,t)
     [dimpoint,N] = size(P);
-
-    
-    
+  
     #camera 0
     c = cameras(1); #note: cameras(1) is corresponds to camera id 0
     K = c.K;
@@ -27,9 +32,6 @@ function [P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCamera(P,cameras,
     K = c.K;
     T = c.T;
     P_Proj_c2 = projectWorldPointsVector(P,R,t,K,T);
-   
-
-    
 
 endfunction
 
@@ -37,18 +39,19 @@ endfunction
 
 
 #this function builds the association matrix 
-#inputs: P world points, Z measurements of the epoch, R, t (robot pose)
+#inputs: 
+# - matrices containing vectors projected in the 3 cameras
+# - Z 
+# - R,t
 #output: A 
-#each point is projected taking in account the camera from which
-#the measurement z is percieved
-function A = getAssociationMatrix(P_Proj_c0, P_Proj_c1,P_Proj_c2,Z,cameras,R,t)
+function A = getAssociationMatrix(P_Proj_c0, P_Proj_c1,P_Proj_c2,Z,R,t)
     [dimpoint,N] = size(P_Proj_c0); #number of points
     M= size(Z); #number of measurements
     #init A 
     A = ones(M,N)*1e3;
 
     for (m=1:length(Z)) #for each measurement
-         meas = Z(m); #take single measurement
+        meas = Z(m); 
         z = [meas.pos.x;meas.pos.y];  #retrieve coordinates
         cid = meas.cid; #retrieve camera index
         
@@ -63,7 +66,7 @@ function A = getAssociationMatrix(P_Proj_c0, P_Proj_c1,P_Proj_c2,Z,cameras,R,t)
         
         #computing cost
         E = P_Proj - z;              
-        A(m,:) = sqrt(sum(E.^2,1)); 
+        A(m,:) = sqrt(sum(E.^2,1)); #norm of the error in pixel
 
     endfor
 
@@ -74,8 +77,10 @@ end
 
 
 
-#this creates a vector of associations in the format 
+#this function creates a vector of associations in the format 
 #[measurement id, proposed landmark id, association matrix value]
+#input: A, Z
+#output: associations 
 function associations = associateMeasurements(A,Z)
     gating_tau = 5; 
     
@@ -96,7 +101,9 @@ function associations = associateMeasurements(A,Z)
      
 end
 
-
+#this is a modified version of projectWorldPoints which does 
+#the same thing, but takes in input a vector of points. 
+#It is used to make the computation more efficient
 function PProjected = projectWorldPointsVector(P,R,t,K,T)
     P_robot = R*P + t;
     R_camera = T(1:3,1:3);

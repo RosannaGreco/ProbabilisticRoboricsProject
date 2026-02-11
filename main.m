@@ -1,8 +1,6 @@
 close all;
 clear; 
 clc;
-pkg load quaternion
-#source "./tools/utilities/geometry_helpers_3d.m"
 source "./mytools/quaternions_helper.m"
 source "./mytools/map_builder.m"
 source "./mytools/measurements_handler.m"
@@ -43,6 +41,7 @@ function [x_result,x_robotpose] = icpOneEpoch(fid, fid_traj_check,x_guess,P_worl
     
     #do icp
     [x_result] = doIcp(x_guess', P_world, Z, iterations, cameras);
+
     #display result
     #uncomment to see result expressed as world wrt robot
     #disp('result (world wrt robot):')
@@ -87,52 +86,6 @@ for i=1:1000
     fprintf(fid_write_poses, 'epoch: %d pose: %.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', i-1,x_robotpose(1),...
     x_robotpose(2), x_robotpose(3), x_robotpose(4), x_robotpose(5), x_robotpose(6), x_robotpose(7));
 endfor
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#testdistancemap
-#project points 
-#pose = [0.0005 0.0000 0.0000 -0.0000 -0.0000 0.0002 1.0000]';
-#x = invertPose(pose);
-#t = x(1:3);
-#q = x(4:7);
-#R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
-#[P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCameraDistMap(P_world,cameras,R,t);
-#[D_c0,Parent_c0] = createDistanceMapNew(P_Proj_c0);
-#disp(Parent_c0(123,477));
-
-
-
-
-
-#try
-#[ cid: 0 lid: 26 imp: 477.0347 123.0206 ]
-#pose = [0 0 0 0 0 0 1]
-#t = pose(1:3);
-#q = pose(4:7);
-#R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
-#[epoch,measurements] = loadMeas(fid);
-#Z = measurements;
-#A = getAssociationMatrix(P_world,Z,cameras,R,t);
-#a = associateMeasurements(A,Z)
-#likelihoods = computeLikelihood(P_world,ciccio,K,T,R,t)
-
-
-
-
 
 
 #close file

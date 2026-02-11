@@ -21,6 +21,8 @@ for line in lines[2:]:
 
 
 #show my poses 
+#here I added some lines to plot my trajectory and compare it
+#with the gt
 with open("poses.dat", "r") as file:
     lines = file.readlines()
 
