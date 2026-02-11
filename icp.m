@@ -12,7 +12,6 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
   t=x(1:3); #translation part
   q=x(4:7); #rotation part (quaternions)
   q = q / norm(q);
-  #q=q/norm(q); #normalize quaternion
   #get rotation matrix from quaternion
   R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
   #cameras 

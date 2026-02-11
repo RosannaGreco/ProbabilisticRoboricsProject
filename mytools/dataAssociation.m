@@ -63,7 +63,7 @@ function A = getAssociationMatrix(P_Proj_c0, P_Proj_c1,P_Proj_c2,Z,cameras,R,t)
         
         #computing cost
         E = P_Proj - z;              
-        A(m,:) = sum(E.^2,1); 
+        A(m,:) = sqrt(sum(E.^2,1)); 
 
     endfor
 

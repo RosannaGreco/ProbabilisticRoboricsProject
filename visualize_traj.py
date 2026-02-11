@@ -38,7 +38,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
 
 ax.plot(tx_coords, ty_coords, tz_coords, label="GT Trajectory", color = "blue")
-ax.plot(tx_estimated_coords, ty_estimated_coords, tz_estimated_coords, label="Estimated Trajectory", color = "red")
+ax.plot(tx_estimated_coords, ty_estimated_coords, tz_estimated_coords, label="Estimated Trajectory", color = "red",linestyle = "dashed")
 
 ax.set_xlabel("X (tx)")
 ax.set_ylabel("Y (ty)")
