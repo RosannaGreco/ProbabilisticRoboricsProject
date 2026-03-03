@@ -94,7 +94,7 @@ K0 = cam0.K;
 K1 = cam1.K;
 T0 = cam0.T;
 T1 = cam1.T;
-[t,q] = Ransac(measurements,P_world,K0,T0);
+[t,q] = Ransac(measurements,P_world,K0,T0, cameras);
 x_guess_inv = [t(:)' q(:)'];
 x_guess = invertPose(x_guess_inv');
 disp('ransac guess:')

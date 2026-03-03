@@ -5,12 +5,89 @@
 #(for each measurement, project point and compute error)
 #3. consensus of the guess as a function of inliers and errors
 #4. repeat and keep best solution
+function[t,q] = Ransac(Z,P,K,T, cameras)
+    best_num_inliers = 0;
+    #init with identity
+    R_best = eye(3);
+    t_best = [0;0;0];
+    X_best = eye(4);
+    best_cost = 800;
+    inlier_threshold = 10;
+    #retrieve camera measurements
+    Z_camera0 = retrieveCamera0Measurements(Z,0);
+    Z_camera0_struct = retrieveCamera0MeasurementsStruct(Z,0);
+    n_measurements = length(Z_camera0_struct);
+    n_landmarks = size(P,2);
+    for i = 1:2000
+        #build candidate correspondences
+        #1. project all landmarks in the camera 
+        projected_P = projectWorldPointsVector(P,R_best,t_best,K,T);
+        #association matrix
+        A = getAssociationMatrix(projected_P,[],[], Z_camera0_struct,R_best,t_best);
+        associations = associateMeasurements(A, Z_camera0_struct); 
+        #generate correspondences 
+        candidate_correspondences= getCandidateCorrespondences(associations);
+        n_correspondences = size(candidate_correspondences,1);
+
+        if n_correspondences < 15
+            continue;
+        endif
+        #extract random correspondences
+        random_idxs = randperm(n_correspondences,15);
+        m_idxs = candidate_correspondences(random_idxs,1);
+        l_idxs = candidate_correspondences(random_idxs,2);
+        sampled_measurements = Z_camera0_struct(m_idxs);
+        sampled_landmarks = P(:, l_idxs);
+        #perform icp 
+        x_guess = zeros(1,7);
+        x_guess(1:3) = t_best;
+        x_guess(4:7) = quaternionFromRotationMatrix(R_best);
+        new_x = doIcp(x_guess', sampled_landmarks, sampled_measurements, 10, cameras);
+        #project points in the new pose
+        q_new = new_x(4:7);
+        R_new = rotationMatrixFromQuaternion(q_new(1),q_new(2),q_new(3),q_new(4));
+        t_new = new_x(1:3);
+        P_newcameraframe = R_new*P+ t_new;
+        new_projected_P = projectWorldPointsVector(P,R_new,t_new,K,T);
+        #compute inliers
+        A_new = getAssociationMatrix(new_projected_P,[],[], Z_camera0_struct,R_new,t_new);
+        associations_new = associateMeasurements(A_new, Z_camera0_struct); 
+        inliers = 0;
+        cost = 0;
+        inliers_idxs = [];
+        for a=1:size(associations_new,1) #for each association
+            assoc = associations_new(a,:);
+            if(assoc(3)< inlier_threshold)
+                inliers+=1;
+                inliers_idxs = [inliers_idxs, a];
+                cost+= assoc(3);
+            endif
+        endfor
+        #update if we found a better result
+        if (inliers > best_num_inliers) && (cost < best_cost)
+            R_best = R_new;
+            t_best = t_new;
+            best_cost = cost;
+            best_num_inliers = inliers;
+            
+        endif
+
+    endfor
+    #X_robot = [R_best,t_best; 0 0 0 1];
+    R_robot = R_best;
+    t_robot = t_best
+    best_num_inliers
+    t = t_robot;
+    q = quaternionFromRotationMatrix(R_robot);
+    
+     
+
+endfunction
 
 
 
 
-
-function[t,q] = Ransac(Z,P,K,T)
+function[t,q] = RansacOld(Z,P,K,T)
     best_num_inliers = 0;
     #init with identity
     R_best = eye(3);
@@ -22,7 +99,7 @@ function[t,q] = Ransac(Z,P,K,T)
     Z_camera0 = retrieveCamera0Measurements(Z,0);
     n_measurements = size(Z_camera0,2);
     n_landmarks = size(P,2);
-    for i = 1:2000
+    for i = 1:1000
         #build candidate correspondences
         #1. project all landmarks in the camera 
         P_cameraframe = R_best*P+ t_best;
@@ -48,7 +125,7 @@ function[t,q] = Ransac(Z,P,K,T)
         x_guess = zeros(1,7);
         x_guess(1:3) = t_best;
         x_guess(4:7) = quaternionFromRotationMatrix(R_best);
-        new_x = doIcpRANSAC(x_guess,sampled_landmarks,sampled_measurements, 10, K);
+        new_x = doIcpRANSAC(x_guess,sampled_landmarks,sampled_measurements, 100, K);
         #project points in the new pose
         q_new = new_x(4:7);
         R_new = rotationMatrixFromQuaternion(q_new(1),q_new(2),q_new(3),q_new(4));
@@ -173,6 +250,23 @@ function z_camera0 = retrieveCamera0Measurements(Z,c)
     endfor
     z_camera0 = z_camera0';
 endfunction
+
+
+
+
+function z_camera0_struct = retrieveCamera0MeasurementsStruct(Z,c)
+    z_camera0_struct = [];
+    for (i=1:length(Z)) 
+        m = Z(i);
+        cid = m.cid;
+        if (cid == c)
+            x = m.pos.x;
+            y = m.pos.y;
+            z_camera0_struct = [z_camera0_struct;m];
+            
+        endif
+    endfor
+endfunction
 #-------------------------------------------------------------------------------
 #this is a modified version of doIcp not handling the data association part 
 #(in this case, it is handled in the ransac loop)
@@ -254,6 +348,6 @@ function [e,J] = errorAndJacobianRANSAC(x, p, z, K);
   Jicp = zeros(3,6);
   Jicp(:,1:3) = eye(3);
   px = skew(p_cameraframe);
-  Jicp(:,4:6) = -R*px;
+  Jicp(:,4:6) = -(px);
   J = Jproj*K*Jicp;
 endfunction
