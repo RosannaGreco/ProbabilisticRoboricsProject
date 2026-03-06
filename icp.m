@@ -19,7 +19,7 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
   c = cameras(id+1); #note: cameras(1) is corresponds to camera id 0
   K = c.K;
   T = c.T;
-  
+   
 
   #prediction and error
   #project the point from world to camera coordinates using a function defined in the folder 'mytools'
@@ -83,7 +83,7 @@ function [x]= doIcp(x_guess,P, Z, num_iterations, cameras)
     R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
     [P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCamera(P,cameras,R,t);
     A = getAssociationMatrix(P_Proj_c0,P_Proj_c1,P_Proj_c2,Z,cameras,R,t);
-    associations = associateMeasurements(A,Z);
+    associations = associateMeasurements(A,Z,5);#gating tau = 5
     measurement_associated_lids = [];
     for a=1:size(associations,1)
         assoc = associations(a,:);

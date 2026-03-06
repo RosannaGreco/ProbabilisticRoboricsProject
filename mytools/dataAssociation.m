@@ -81,8 +81,8 @@ end
 #[measurement id, proposed landmark id, association matrix value]
 #input: A, Z
 #output: associations 
-function associations = associateMeasurements(A,Z)
-    gating_tau = 5; 
+function associations = associateMeasurements(A,Z,tau)
+    gating_tau = tau; 
     
     [M,N] = size(A);
     associations = zeros(M,3);

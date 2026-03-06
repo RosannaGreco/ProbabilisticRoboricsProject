@@ -94,16 +94,18 @@ K0 = cam0.K;
 K1 = cam1.K;
 T0 = cam0.T;
 T1 = cam1.T;
-[t,q] = Ransac(measurements,P_world,K0,T0, cameras);
-x_guess_inv = [t(:)' q(:)'];
-x_guess = invertPose(x_guess_inv');
+[t,q] = Ransac(measurements,P_world,K0,T0, cameras); 
+x_guess_inv = [t(:)' q(:)']; #pose of the world wrt robot
+x_guess_r = invertPose(x_guess_inv'); #pose of the robot wrt world
 disp('ransac guess:')
-    fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_guess_inv);
-gt_pose = read_gt_trajectory(fid_traj_check)
-err = gt_pose - x_guess_inv;
+    fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_guess_r); 
+gt_pose = read_gt_trajectory(fid_traj_check) #retrieve gt pose
+err = gt_pose - x_guess_r; #compute error
+
 disp('error:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', err); 
 
+x_guess = x_guess_inv;
 for i=1:999
     [x_result,x_robotpose] = icpOneEpoch(fid,fid_traj_check,x_guess,P_world,cameras);
     x_guess = x_result';

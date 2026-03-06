@@ -9,13 +9,14 @@ function[p_projected,pcam_hat, p_cameraframe, p_robotframe] = projectWorldPoints
     #p = point in the world frame
     #R = matrix obtained from the quaternions
     #point in the robot frame
-    
+
     p_robotframe = R*p+ t;
     
     #point in the camera frame
     R_camera = T(1:3, 1:3);#rotational part
-    t_camera = T(1:3, 4) ; #translational part
+    t_camera = T(1:3, 4);  #translational part
     p_cameraframe = R_camera'*(p_robotframe - t_camera);
+
    
     #apply K and project
     pcam_hat = K*p_cameraframe; #apply K matrix
