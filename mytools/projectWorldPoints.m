@@ -17,10 +17,10 @@ function[p_projected,pcam_hat, p_cameraframe, p_robotframe] = projectWorldPoints
     t_camera = T(1:3, 4);  #translational part
     p_cameraframe = R_camera'*(p_robotframe - t_camera);
 
-   
+    
     #apply K and project
     pcam_hat = K*p_cameraframe; #apply K matrix
-    p_projected = pcam_hat(1:2)/pcam_hat(3);
+    p_projected = pcam_hat(1:2)./pcam_hat(3);
 
     
    

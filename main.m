@@ -105,8 +105,13 @@ err = gt_pose - x_guess_r; #compute error
 disp('error:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', err); 
 
+#print first pose in file storing poses 
+fprintf(fid_write_poses, 'epoch: %d pose: %.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', 0,x_guess_r(1),...
+    x_guess_r(2), x_guess_r(3), x_guess_r(4), x_guess_r(5), x_guess_r(6), x_guess_r(7));
+
+
 x_guess = x_guess_inv;
-for i=1:999
+for i=2:1000
     [x_result,x_robotpose] = icpOneEpoch(fid,fid_traj_check,x_guess,P_world,cameras);
     x_guess = x_result';
     disp('---------------------------------------------')

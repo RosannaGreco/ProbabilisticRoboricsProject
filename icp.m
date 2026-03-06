@@ -25,7 +25,7 @@ function [e,J]=errorAndJacobian(x,p,z,cid, cameras)
   #project the point from world to camera coordinates using a function defined in the folder 'mytools'
   [z_hat,p_cam_hat,p_cameraframe,p_robotframe] = projectWorldPoints(p,K,T,R,t);
   
-  
+
   #ERROR----------------------------------------
   e = z_hat - z;
   

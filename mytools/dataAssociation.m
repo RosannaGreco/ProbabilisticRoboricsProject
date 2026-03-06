@@ -108,6 +108,9 @@ function PProjected = projectWorldPointsVector(P,R,t,K,T)
     P_robot = R*P + t;
     R_camera = T(1:3,1:3);
     P_camera = R_camera'*(P_robot - T(1:3,4));
+
+
+
     P_cam_hat = K*P_camera;  
     PProjected = P_cam_hat(1:2,:) ./ P_cam_hat(3,:);
 endfunction
