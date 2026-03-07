@@ -108,7 +108,7 @@ In the proposed implementation, for each epoch, the algorithm takes the result c
 In the second step, a robust kernel was added to the ICP algorithm in order to lessen the contribution of outliers. Furthermore, the unknown data association case was addressed. 
 
 ### Data Association 
-This part is handled in the `dataAssociation.m` file. 
+The data association is addressed using a nearest neighbor strategy. This part is handled in the `dataAssociation.m` file.
 
 Firstly, all the landmarks are projected in the cameras according to $X$, forming three matrices (one for each camera). Then, for each measurement, the association matrix is computed taking in account the matrix obtained considering the camera from which the measurement was perceived. 
 
