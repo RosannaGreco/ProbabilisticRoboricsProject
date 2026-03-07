@@ -1,15 +1,15 @@
 
-
+#This function project a point in the camera frame
 #input: 
 #   p in world coordinates
 #   K, T of the camera 
 #   R,t robot rotation matrix and translation vector
-#output: p projected in the camera screen
+#output: p projected 
 function[p_projected,pcam_hat, p_cameraframe, p_robotframe] = projectWorldPoints(p,K,T,R,t)
     #p = point in the world frame
     #R = matrix obtained from the quaternions
+    
     #point in the robot frame
-
     p_robotframe = R*p+ t;
     
     #point in the camera frame
@@ -19,12 +19,9 @@ function[p_projected,pcam_hat, p_cameraframe, p_robotframe] = projectWorldPoints
 
     
     #apply K and project
-    pcam_hat = K*p_cameraframe; #apply K matrix
+    pcam_hat = K*p_cameraframe; 
     p_projected = pcam_hat(1:2)./pcam_hat(3);
 
-    
-   
-    
 
 end
 

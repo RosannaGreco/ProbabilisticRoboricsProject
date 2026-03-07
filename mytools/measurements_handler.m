@@ -2,7 +2,6 @@
 #input: file id of an open file
 #output: for each measurement, we have a struct containing:
 #        epoch, cid, lid, pos (containing x and y on the image)
-
 function [epoch,measurements] = loadMeas(fid)
     measurements = [];
     line = fgetl(fid); #take new line
@@ -14,8 +13,6 @@ function [epoch,measurements] = loadMeas(fid)
     while line(1) == '#'; #do not consider comments
         line = fgetl(fid);
     end
-
-    
 
     #get epoch 
     epoch = sscanf(line,'EPOCH: %d');

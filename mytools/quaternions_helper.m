@@ -1,4 +1,4 @@
-#This file contains functions useful to work with the quaternions
+#This file contains functions used to handle the quaternions
 
 #this function takes in input quaterions and returns a rotation matrix
 #input: qx qy qz qw
@@ -28,18 +28,6 @@ function [R] = rotationMatrixFromQuaternion(q_x,q_y,q_z,q_w);
 end
  
 
-#from 7d vector (translation | quaternions) to homogeneous matrix
-#this function is a modified version of v2t (found in the code provided during the course)
-#input: 7d vector v
-#output: matrix T
-function T=v2t_quaternion(v)
-    q = v(4:7);
-    q = q/norm(q); #normalize quaternion
-    R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
-    T=eye(4);
-    T(1:3,1:3)=R;
-    T(1:3,4)=v(1:3);
-endfunction;
 
 #this function is used to multiply two quaternions
 #input: q1 q2
@@ -57,25 +45,6 @@ function q_new = quaternion_multiplication(q1,q2)
     
 endfunction
 
-#obtain a rotation matrix from a quaternion
-#function q = quaternionFromRotationMatrix(R)
-#    qw = sqrt(max(0, 1 + R(1,1) + R(2,2) + R(3,3))) / 2;
-#    qx = sgn(R(3,2) - R(2,3)) * sqrt(max(0, 1 + R(1,1) - R(2,2) - R(3,3))) / 2;
-#    qy = sgn(R(1,3) - R(3,1)) * sqrt(max(0, 1 - R(1,1) + R(2,2) - R(3,3))) / 2;
-#    q_z = sgn(R(2,1) - R(1,2)) * sqrt(max(0, 1 - R(1,1) - R(2,2) + R(3,3))) / 2;
-#    q = [qx;qy;q_z;qw];
-#    q = q/norm(q);
-
-#end
-
-function s = sgn(x)
-    if x < 0
-        s = -1;
-    else
-        s = 1;
-    end
-
-end
 
 
 
@@ -84,29 +53,58 @@ function q = quaternionFromRotationMatrix(R)
     if tr > 0
         S = sqrt(tr + 1.0) * 2;
         qw = 0.25 * S;
-        qx = (R(3,2) - R(2,3)) / S;
-        qy = (R(1,3) - R(3,1)) / S;
-        qz = (R(2,1) - R(1,2)) / S;
+        qx = (R(3,2)- R(2,3)) / S;
+        qy = (R(1,3)- R(3,1)) / S;
+        q_z = (R(2,1)- R(1,2)) / S;
     elseif (R(1,1) > R(2,2)) && (R(1,1) > R(3,3))
         S = sqrt(1.0 + R(1,1) - R(2,2) - R(3,3)) * 2;
         qw = (R(3,2) - R(2,3)) / S;
         qx = 0.25 * S;
         qy = (R(1,2) + R(2,1)) / S;
-        qz = (R(1,3) + R(3,1)) / S;
+        q_z = (R(1,3) + R(3,1)) / S;
     elseif R(2,2) > R(3,3)
         S = sqrt(1.0 + R(2,2) - R(1,1) - R(3,3)) * 2;
-        qw = (R(1,3) - R(3,1)) / S;
+        qw = (R(1,3)- R(3,1)) / S;
         qx = (R(1,2) + R(2,1)) / S;
         qy = 0.25 * S;
-        qz = (R(2,3) + R(3,2)) / S;
+        q_z = (R(2,3) + R(3,2)) / S;
     else
         S = sqrt(1.0 + R(3,3) - R(1,1) - R(2,2)) * 2;
-        qw = (R(2,1) - R(1,2)) / S;
-        qx = (R(1,3) + R(3,1)) / S;
-        qy = (R(2,3) + R(3,2)) / S;
-        qz = 0.25 * S;
+        qw = (R(2,1)- R(1,2)) / S;
+        qx = (R(1,3)+ R(3,1)) / S;
+        qy = (R(2,3)+ R(3,2)) / S;
+        q_z = 0.25 * S;
     end
-    q = [qx; qy; qz; qw];
+    q = [qx; qy; q_z; qw];
     q = q / norm(q);
 end
 
+#from 7d vector (translation | quaternions) to homogeneous matrix:
+#this function is a modified version of v2t that works with a 7d vector
+#input: 7d vector v
+#output: matrix T
+function T=v2t_quaternion(v)
+    q = v(4:7);
+    q = q/norm(q); #normalize quaternion
+    R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+    T=eye(4);
+    T(1:3,1:3)=R;
+    T(1:3,4)=v(1:3);
+endfunction;
+
+# from transformation to 7d vector:
+#this function is a modified version of v2t
+#input: transformation matrix T
+#output: 7d vector v
+function v=t2v_quaternion(T)
+  v = zeros(7,1);
+  v(1:3) = T(1:3,4);
+  v(4:7) = quaternionFromRotationMatrix(T(1:3,1:3));
+endfunction
+
+#from 6d vector to homogeneous matrix (from geometry_helpers_3d)
+function T=v2t(v)
+    T=eye(4);
+    T(1:3,1:3)=angles2R(v(4:6));
+    T(1:3,4)=v(1:3);
+endfunction;

@@ -3,7 +3,6 @@
 #output: 
 #   for each landmark, a struct containing:
 #   id,x,y,z
-
 function [landmarks] = loadMap(filepath)
     fid = fopen(filepath, 'r');
     fgetl(fid);#ignore first line

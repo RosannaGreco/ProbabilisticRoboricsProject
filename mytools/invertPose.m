@@ -1,12 +1,11 @@
 
-#this function takes a pose 
-#i.e. robot wrt world
+#this function takes a pose expressed as robot wrt world
 #and expresses it as world wrt robot
+#and viceversa
 function x_inv = invertPose(x)
     t=x(1:3);    
     q=x(4:7); 
     
-
     q=q/norm(q); 
     #inverse rotation
     q_inv = [-q(1) -q(2) -q(3) q(4)];

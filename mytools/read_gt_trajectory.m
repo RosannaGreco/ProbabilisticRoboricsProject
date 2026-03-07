@@ -1,3 +1,5 @@
+#This function reads the gt trajectory from traj.dat
+#It is useful for debugging 
 function [pose] = read_gt_trajectory(fid)
     pose = [];
     line = fgetl(fid); #take new line

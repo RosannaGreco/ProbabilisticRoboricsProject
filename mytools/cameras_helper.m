@@ -1,13 +1,4 @@
-#this function takes a point in camera coordinates and applies the projection
-#operation to obtain pixel coordinates
-function [p_img] = projection(p)
-    xcam = p(1);
-    ycam = p(2);
-    zcam = p(3);
-    x = xcam/zcam;
-    y = ycam/zcam;
-    p_img = [x;y];
-end
+
 #this function is used to compute Jproj
 #input: point p
 #output: matrix Jproj

@@ -4,8 +4,8 @@ addpath('./mytools');
 
 #project all the points in each camera (considering the pose)
 #input:
-# -P 
-# -cameras struct 
+# P 
+# cameras struct 
 # R rotation matrix of the pose (world wrt robot)
 # t translational part of the pose (world wrt robot)
 #output: 
@@ -17,21 +17,21 @@ function [P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCamera(P,cameras,
     c = cameras(1); #note: cameras(1) is corresponds to camera id 0
     K = c.K;
     T = c.T;
-    P_Proj_c0 = projectWorldPointsVector(P,R,t,K,T);
+    P_Proj_c0 = projectWorldPointsM(P,R,t,K,T);
    
 
     #camera 1
     c = cameras(2); #note: cameras(1) is corresponds to camera id 0
     K = c.K;
     T = c.T;
-    P_Proj_c1 = projectWorldPointsVector(P,R,t,K,T);
+    P_Proj_c1 = projectWorldPointsM(P,R,t,K,T);
 
 
     #camera 2
     c = cameras(3); #note: cameras(1) is corresponds to camera id 0
     K = c.K;
     T = c.T;
-    P_Proj_c2 = projectWorldPointsVector(P,R,t,K,T);
+    P_Proj_c2 = projectWorldPointsM(P,R,t,K,T);
 
 endfunction
 
@@ -40,9 +40,9 @@ endfunction
 
 #this function builds the association matrix 
 #inputs: 
-# - matrices containing vectors projected in the 3 cameras
-# - Z 
-# - R,t
+# matrices containing vectors projected in the 3 cameras
+# Z 
+# R,t
 #output: A 
 function A = getAssociationMatrix(P_Proj_c0, P_Proj_c1,P_Proj_c2,Z,R,t)
     [dimpoint,N] = size(P_Proj_c0); #number of points
@@ -102,9 +102,9 @@ function associations = associateMeasurements(A,Z,tau)
 end
 
 #this is a modified version of projectWorldPoints which does 
-#the same thing, but takes in input a vector of points. 
+#the same thing, but takes in input a matrix of points. 
 #It is used to make the computation more efficient
-function PProjected = projectWorldPointsVector(P,R,t,K,T)
+function PProjected = projectWorldPointsM(P,R,t,K,T)
     P_robot = R*P + t;
     R_camera = T(1:3,1:3);
     P_camera = R_camera'*(P_robot - T(1:3,4));
