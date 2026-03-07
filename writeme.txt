@@ -1,5 +1,0 @@
-POINT 2: 
--for each iteration, take the pose
--project all the landmarks in the cameras according to that pose. 
--take a measurement z and compare it with all the landmarks projected in that camera. 
--cost = e'*e 
