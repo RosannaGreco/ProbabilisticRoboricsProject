@@ -1,4 +1,5 @@
 # Multi-PICP localization Project
+
 # Abstract
 The aim of the project was to estimate the position of a multi camera system provided with three cameras observing a set of known 3D point landmarks. 
 
@@ -26,16 +27,16 @@ The ICP algorithm is and application of Least Squares used to compute the state 
 #### Problem definition
 ##### State and Boxplus operator
 The state was provided in the form of translation and an orientation expressed in quaternions.
-$$
-x = [t q] = \begin{pmatrix}
-tx & ty & tz & qx & qy & qz & qw
-\end{pmatrix}
-$$
+
+x = [t q] = 
+[ tx ty tz qx qy qz qw ]
+
 It can be expressed as a transformation matrix.
-$$
-X \in SE(3):  X = (R|t)
-$$
-We can hence define a perturbation in the euclidean space $ \Delta x \in \mathbb{R}^6 $ and the boxplus operator:
+
+X in SE(3):
+X = [ R | t ]
+
+We can hence define a perturbation in the euclidean space Δx in R^6 and the boxplus operator:
 
 $$
 X \boxplus \Delta x : v2t(\Delta x)X
@@ -44,20 +45,19 @@ $$
 
 The 7d vector used as initial guess for ICP is expressed as the pose of the world wrt robot and converted in a transformation matrix $X$ by a function called `v2t_quaternion`. Subsequently, the state is updated applying the boxplus operation. 
 
-A function named `t2v_quaternion` converts the estimated state $X_result$ in a 7d vector format, which is then expressed as robot wrt world, enabling a comparison with the ground truth pose. 
+A function named `t2v_quaternion` converts the estimated state $X_{result}$ in a 7d vector format, which is then expressed as robot wrt world, enabling a comparison with the ground truth pose. 
 
 All the functions used to work with the 7d vector representation (i.e. to handle quaternions) are stored in a file called `quaternions_helper.m`. 
 
 ##### Measurements and Prediction
-The measurements are the 2D coordinates of the points perceived by the cameras, and can hence be condisered Euclidean. 
-$$ 
-z \in \mathbb{R}^2
-$$
-We don't need to define a boxminus operator. 
-The prediction is given by
-$$
-h^{[n]}(X) = proj(KT^{-1}X p_{world})
-$$
+The measurements are the 2D coordinates of the points perceived by the cameras, and can be condisered Euclidean. 
+
+z ∈ R^2  
+We don't need to define a boxminus operator.  
+
+The prediction is given by:
+
+h^[n](X) = proj(K * T^-1 * X * p_world)
 
 ##### Projection model details
 To project a point, we apply the following transformations:
@@ -72,27 +72,25 @@ During this first step (considering known data association), for each measuremen
 
 ##### Error and Jacobian
 The error can be defined as the difference between prediction and measurement.
-$$
-e^{[n,m]}(X) = h^{[n]}(X) - z^{[m]}
-$$
-The Jacobian can be computed as follows: 
-$$
-J = J_{proj}(\hat{p}_{cam}^{[n]})KJ_{icp}
-$$
-$$
-Jproj = \begin{pmatrix}
-\frac{1}{z} & 0 &  -\frac{x}{z^2}\\
-0 & \frac{1}{z} &  -\frac{y}{z^2}
-\end{pmatrix}
-$$
 
-$$
-J_{icp} = \begin{bmatrix} J_t & J_r \end{bmatrix} \quad
-J_t = R_{camera}^T, \quad
-J_r = - R_{camera}^T \, \lfloor p_{robotframe} \rfloor_\times
-$$
+e^[n,m](X) = h^[n](X) - z^[m]  
 
-Where $\hat{p}_{cam}^{[n]} $ is the point in the camera frame after the application of matrix $K$, $p_{robotframe} $ is the point expressed in the robot frame and $R_{camera}$ is the rotation matrix extracted from the transformation matrix of the camera.
+The Jacobian can be computed as follows:
+
+J = J_proj(p_cam_hat^[n]) * K * J_icp
+
+J_proj = 
+[ 1/z     0   -x/z^2
+  0      1/z  -y/z^2 ]
+
+J_icp = [ J_t | J_r ]  
+
+J_t = R_camera^T  
+J_r = - R_camera^T * skew(p_robotframe)
+
+
+
+Where p_cam_hat is the point in the camera frame after the application of matrix K, p_robotframe is the point expressed in the robot frame and R_camera is the rotation matrix extracted from the transformation matrix of the camera.
 The `errorAndJacobian` function computes the error and the Jacobian according to the parameters of the camera the measurement is perceived from. 
 
 
@@ -202,3 +200,9 @@ Here we can see some plots displaying the behavior of the single components of t
     <img src="output/qz_error_evolution.png" alt="qz_error_evolution" width="400"/>
     <img src="output/qw_error_evolution.png" alt="qw_error_evolution" width="400"/>
 </p>
+
+
+
+# How to test the code
+In order to test the code, it is sufficient to run the `main.m` file. 
+
