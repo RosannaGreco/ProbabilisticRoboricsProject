@@ -60,7 +60,7 @@ function [X,chi_stats, num_inliers]= doIcp(X_guess,P, Z, num_iterations, cameras
     t = X(1:3, 4);
     R = X(1:3, 1:3);
     [P_Proj_c0, P_Proj_c1, P_Proj_c2] = projectLandmarksInCamera(P,cameras,R,t);
-    A = getAssociationMatrix(P_Proj_c0,P_Proj_c1,P_Proj_c2,Z,cameras,R,t);
+    A = getAssociationMatrix(P_Proj_c0,P_Proj_c1,P_Proj_c2,Z,R,t);
     associations = associateMeasurements(A,Z,5);#gating tau = 5
     measurement_associated_lids = [];
     for a=1:size(associations,1)
