@@ -203,5 +203,7 @@ Here we can see some plots displaying the behavior of the single components of t
 
 
 # How to test the code
-In order to test the code, it is sufficient to run the `main.m` file. 
+In order to test the code, it is sufficient to run the `main.m` file. The new output files `poses.dat` and `error.dat` will be created in the main folder.
+
+In order to plot the new obtained results using `visualize_traj.py` or `visualize_error.py`, the paths of the output files should be changed.
 
