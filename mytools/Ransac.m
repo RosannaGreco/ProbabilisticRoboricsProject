@@ -230,7 +230,7 @@ function [X]= doIcpRANSAC(X_guess,P, Z, num_iterations, cameras)
       
       
       #kernel treshold part-------------
-      kernel_threshold = 20; 
+      kernel_threshold = 5; 
 
       chi=e'*e;
       if (chi>kernel_threshold)
