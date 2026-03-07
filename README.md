@@ -157,19 +157,13 @@ The images below shows a comparison between the estimated trajectory (red) and t
 ## ICP error evolution
 The below plots were obtained running ICP in order to estimate the pose of the first epoch starting from different initial guesses. 
 
-The first two images show the error obtained with a good initial guess and a bad initial guess using a kernel threshold = 5. In this case, the system reaches a good estimation only if the pose chosen as initial guess is close enough. 
+The first two images show the error obtained with a good initial guess and a bad initial guess. 
 <p align="center">
     <img src="output/icp_error_good_initial_guess.png" alt="icp_error_good_init_guess" width="400"/>
     <img src="output/icp_error_bad_initial_guess.png" alt="icp_error_bad_init_guess" width="400"/>
     
 </p>
 
-These, instead, are the results obtained running the same test with a kernel threshold = 20. As we can see, using a robust kernel helps handling the case in which we have a greater number of outliers. 
-<p align="center">
-    <img src="output/icp_error_good_initial_guess_kt.png" alt="icp_error_good_init_guess_kt" width="400"/>
-    <img src="output/icp_error_bad_initial_guess_kt.png" alt="icp_error_bad_init_guess" width="400"/>
-    
-</p>
 
 ## Trajectory error evolution 
 The table below shows the trajectory error computed during the first epochs. As we can see, the values remain on the order of $10^{-5}$. The output folder contains a file (`error.dat`) storing the error values during the whole trajectory.
