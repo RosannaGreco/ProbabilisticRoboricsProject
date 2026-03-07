@@ -1,7 +1,7 @@
 # Multi-PICP localization Project
 
 # Abstract
-The aim of the project was to estimate the position of a multi camera system provided with three cameras observing a set of known 3D point landmarks. 
+The aim of the project was to estimate the position of a multi camera system provided with three fixed cameras observing a set of known 3D point landmarks. 
 
 # Methodology
 ## First Step: Position Tracking with Known Data Association
@@ -59,6 +59,7 @@ The prediction is given by:
 h^[n](X) = proj(K * T^-1 * X * p_world)
 
 ##### Projection model details
+
 To project a point, we apply the following transformations:
 - bring the point in the robot frame using the estimated transformation X (expressed as world wrt robot). The first tests were performed considering the gt of the first pose.
 - bring the point in the camera frame using the camera transformation matrix T provided in `param.dat`. 

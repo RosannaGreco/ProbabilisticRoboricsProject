@@ -46,6 +46,7 @@ function [X,chi_stats, num_inliers]= doIcp(X_guess,P, Z, num_iterations, cameras
   X = X_guess;
   chi_stats=zeros(1,num_iterations); 
   num_inliers=zeros(1,num_iterations); 
+  
   kernel_threshold = 5;
   for (iteration=1:num_iterations)
    
@@ -53,6 +54,7 @@ function [X,chi_stats, num_inliers]= doIcp(X_guess,P, Z, num_iterations, cameras
     H=zeros(6,6);
     b=zeros(6,1);
     chi_stats(iteration)=0; 
+    
    
     #data association part
     t = X(1:3, 4);
@@ -67,7 +69,7 @@ function [X,chi_stats, num_inliers]= doIcp(X_guess,P, Z, num_iterations, cameras
         measurement_associated_lids = [measurement_associated_lids; lid];
     endfor
 
-
+    
     for (i=1:length(Z)) #we iterate on the struct containing the measurements
       
       m = Z(i); #take single measurement
