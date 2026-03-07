@@ -7,7 +7,6 @@ The aim of the project was to estimate the position of a multi camera system pro
 ## First Step: Position Tracking with Known Data Association
 In the first step, a Projective ICP schema was implemented in order to address the problem considering the known data association case.
 
-
 The provided data included: 
 - map.dat, containing the position of the landmarks in the world reference frame.
 - param.dat, containing information about the cameras mounted on the robot.
