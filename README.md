@@ -157,7 +157,7 @@ The images below shows a comparison between the estimated trajectory (red) and t
 ## ICP error evolution
 The below plots were obtained running ICP in order to estimate the pose of the first epoch starting from different initial guesses. 
 
-The first two images show the error obtained with a good initial guess and a bad initial guess. 
+The two images below show the error obtained with a good initial guess and a bad initial guess. 
 <p align="center">
     <img src="output/icp_error_good_initial_guess.png" alt="icp_error_good_init_guess" width="400"/>
     <img src="output/icp_error_bad_initial_guess.png" alt="icp_error_bad_init_guess" width="400"/>
