@@ -41,7 +41,7 @@ endfunction
 
 
 
-function [X]= doIcp(X_guess,P, Z, num_iterations, cameras)
+function [X,chi_stats, num_inliers]= doIcp(X_guess,P, Z, num_iterations, cameras)
   #initial guess
   X = X_guess;
   chi_stats=zeros(1,num_iterations); 
@@ -87,7 +87,7 @@ function [X]= doIcp(X_guess,P, Z, num_iterations, cameras)
       
       
       #kernel treshold part-------------
-      kernel_threshold = 5; 
+      kernel_threshold = 20; 
 
       chi=e'*e;
       if (chi>kernel_threshold)

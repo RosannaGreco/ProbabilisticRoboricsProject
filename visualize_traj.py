@@ -23,7 +23,7 @@ for line in lines[2:]:
 #show my poses 
 #here I added some lines to plot my trajectory and compare it
 #with the gt
-with open("poses.dat", "r") as file:
+with open("output/poses.dat", "r") as file:
     lines = file.readlines()
 
 
@@ -40,7 +40,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
 
 ax.plot(tx_coords, ty_coords, tz_coords, label="GT Trajectory", color = "blue")
-ax.plot(tx_estimated_coords, ty_estimated_coords, tz_estimated_coords, label="Estimated Trajectory", color = "red",linestyle = "dashed")
+ax.plot(tx_estimated_coords, ty_estimated_coords, tz_estimated_coords, label="Estimated Trajectory", color = "red", linestyle = "dashed")
 
 ax.set_xlabel("X (tx)")
 ax.set_ylabel("Y (ty)")

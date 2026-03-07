@@ -41,7 +41,7 @@ function [x_result,x_robotpose, e] = icpOneEpoch(fid, fid_traj_check,x_guess,P_w
     
     X_guess = v2t_quaternion(x_guess'); #convert in transformation matrix
     #do icp
-    [X_result] = doIcp(X_guess, P_world, Z, iterations, cameras);
+    [X_result, chi_stats, num_inliers] = doIcp(X_guess, P_world, Z, iterations, cameras);
 
     x_result = t2v_quaternion(X_result); #convert in 7d vector
     #result robot wrt world
@@ -63,6 +63,7 @@ function [x_result,x_robotpose, e] = icpOneEpoch(fid, fid_traj_check,x_guess,P_w
     end
     disp('trajectory error:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', e); 
+
 
 end
 

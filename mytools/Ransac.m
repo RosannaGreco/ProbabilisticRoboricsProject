@@ -122,7 +122,7 @@ function[t,q] = Ransac(Z,P,K,T, cameras)
         x_refined = t2v_quaternion(X_refined);
         t = x_refined(1:3);
         q = x_refined(4:7);
-        
+        best_num_inliers 
 
     else 
         R_robot = R_best;
@@ -230,7 +230,7 @@ function [X]= doIcpRANSAC(X_guess,P, Z, num_iterations, cameras)
       
       
       #kernel treshold part-------------
-      kernel_threshold = 5; 
+      kernel_threshold = 20; 
 
       chi=e'*e;
       if (chi>kernel_threshold)

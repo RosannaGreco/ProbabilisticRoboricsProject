@@ -1,0 +1,325 @@
+
+    #lonely best friends
+    number_of_valid_associations = 0;
+    if(M > 1)
+        for i=1:number_gated_association
+            a_mn = associations(i,3);
+            measurement_id = associations(i,1);
+            proposed_landmark_id = associations(i,2);
+
+            if(proposed_landmark_id == 0)
+                continue;
+            endif
+            
+
+            %obtain second best(aka min) value of the row
+            ordered_row          = unique(A(measurement_id,:));
+            second_row_min_value = ordered_row(2);
+
+            %obtain second best(aka min) value of the column
+            ordered_col          = unique(A(:,proposed_landmark_id));
+            second_col_min_value = ordered_col(2);
+
+             %check if the association is ambiguous
+            if((second_row_min_value - a_mn) < lonely_best_friend_gamma_threshold ||...
+                (second_col_min_value - a_mn) < lonely_best_friend_gamma_threshold)
+
+                %discard association, it is doubtful
+                associations(i,2) = 0;
+            else
+        
+            %we have found a valid association!
+                ++number_of_valid_associations;
+            endif
+        endfor
+    endif
+  %assign the associations to the observations
+    #for i=1:number_of_gated_associations
+    #    measurement_id       = associations(i, 1);
+    #    proposed_landmark_id = associations(i, 2);    
+
+        %assign the proposed association OR 0 (a magic number that indicates no landmark was found)
+    #    observations.observation(measurement_id).id = proposed_landmark_id;
+    #endfor
+
+
+
+    #this function builds the association matrix 
+#inputs: P world points, Z measurements of the epoch, R, t (robot pose)
+#output: A 
+#each point is projected taking in account the camera from which
+#the measurement z is percieved
+function A = getAssociationMatrixOld(P,Z,cameras,R,t)
+    [dimpoint,N] = size(P); #number of points
+    M= size(Z); #number of measurements
+    #init A 
+    A = ones(M,N)*1e3;
+
+    for (m=1:length(Z)) #for each measurement
+         meas = Z(m); #take single measurement
+        z = [meas.pos.x;meas.pos.y];  #retrieve coordinates
+        cid = meas.cid; #retrieve camera index
+        #retrieve camera parameters
+        c = cameras(cid+1); #note: cameras(1) is corresponds to camera id 0
+        K = c.K;
+        T = c.T;
+        
+        for n=1:N #for each landmark
+            p = P(:,n);#retrieve 3d coordinates
+            [p_projected,pcam_hat, p_cameraframe, p_robotframe] = projectWorldPoints(p,K,T,R,t);
+            p_projected = p_projected(:);
+            #fill matrix
+            e = p_projected-z;
+            A(m,n) = e' * e;
+        endfor
+
+    endfor
+
+end
+
+
+
+function [t,q] = RansacOld(Z,P,K,T)
+    #init virtual cam
+    R_virtualcam = eye(3);
+    t_virtualcam = [0;0;0];
+    P = P';
+    #init pose and inliers
+    best_num_inliers = 0;
+    R_best = eye(3);
+    t_best = [0;0;0];
+    X_best = eye(4);
+    #retrieve camera measurements
+    [Z_camera0,Z_camera0_struct] = retrieveCamera0Measurements(Z,0);
+    n_landmarks = size(P,1);
+    n_measurements = size(Z_camera0,1);
+    inlier_threshold = 5;
+    #compute directions 
+
+    for i = 1:2000
+        #randomly take 8 landmarks and 8 measurements
+        #random_ids_landmarks = randperm(n_landmarks,26);
+
+        #select randomly  3 measurements
+        #random_ids_measurements = randperm(n_measurements,3);
+        #extracted_Z = Z_camera0(random_ids_measurements,:);
+
+
+
+        
+        #extracted_P = P(random_ids_landmarks,:);
+        #extracted_Z = Z_camera0(random_ids_measurements,:);
+
+        #project points through virtual camera
+        #projected_P = projectWorldPointsVector(extracted_P', R_virtualcam, t_virtualcam, K, T); 
+        #compute pose between virtual camera and camera0
+        #X = estimateTransform(K, projected_P,Z_camera0', use_preconditioning=false);
+        R_estimated = X(1:3,1:3);
+        t_estimated = X(1:3,4);
+        #project other points in camera 0 
+        all_projected_landmarks = projectWorldPointsVector(P', R_estimated, t_estimated, K, T);
+        #do data association
+        A = getAssociationMatrixV2(all_projected_landmarks, Z_camera0, R_estimated, t_estimated);
+        associations = associateMeasurements(A, Z_camera0);
+        #compute inliers
+        inliers = 0;
+        for a=1:size(associations,1) #for each association
+            assoc = associations(a,:);
+            if(assoc(3)< inlier_threshold)
+                inliers+=1;
+            endif
+        endfor
+    
+        if inliers > best_num_inliers
+            R_best = R_estimated;
+            t_best = t_estimated;
+            X_best = X;
+            best_num_inliers = inliers;
+        endif
+
+    endfor
+
+    X_robot = X_best * inv(T); 
+    R_robot = X_robot(1:3,1:3);
+    t_robot = X_robot(1:3,4);
+    best_num_inliers
+    t = t_robot;
+    q = quaternionFromRotationMatrix(R_robot);
+    #compute robot pose from camera
+
+endfunction
+
+
+function[t,q] = RansacOld(Z,P,K,T)
+    best_num_inliers = 0;
+    #init with identity
+    R_best = eye(3);
+    t_best = [0;0;0];
+    X_best = eye(4);
+    best_cost = 800;
+    inlier_threshold = 10;
+    #retrieve camera measurements
+    Z_camera0 = retrieveCamera0Measurements(Z,0);
+    n_measurements = size(Z_camera0,2);
+    n_landmarks = size(P,2);
+    for i = 1:1000
+        #build candidate correspondences
+        #1. project all landmarks in the camera 
+        P_cameraframe = R_best*P+ t_best;
+        #2. project points
+        projected_P = projectPoints(K,P_cameraframe);
+        #association matrix
+        A = getAssociationMatrixV2(projected_P, Z_camera0);
+        associations = associateMeasurementsV2(A, Z_camera0); 
+        #generate correspondences 
+        candidate_correspondences= getCandidateCorrespondences(associations);
+        n_correspondences = size(candidate_correspondences,1);
+
+        if n_correspondences < 15
+            continue;
+        endif
+        #extract random correspondences
+        random_idxs = randperm(n_correspondences,15);
+        m_idxs = candidate_correspondences(random_idxs,1);
+        l_idxs = candidate_correspondences(random_idxs,2);
+        sampled_measurements = Z_camera0(:, m_idxs);
+        sampled_landmarks = P(:, l_idxs);
+        #perform icp 
+        x_guess = zeros(1,7);
+        x_guess(1:3) = t_best;
+        x_guess(4:7) = quaternionFromRotationMatrix(R_best);
+        new_x = doIcpRANSAC(x_guess,sampled_landmarks,sampled_measurements, 100, K);
+        #project points in the new pose
+        q_new = new_x(4:7);
+        R_new = rotationMatrixFromQuaternion(q_new(1),q_new(2),q_new(3),q_new(4));
+        t_new = new_x(1:3);
+        P_newcameraframe = R_new*P+ t_new;
+        new_projected_P = projectPoints(K,P_newcameraframe);
+        #compute inliers
+        A_new = getAssociationMatrixV2(new_projected_P, Z_camera0);
+        associations_new = associateMeasurementsV2(A_new, Z_camera0); 
+        inliers = 0;
+        cost = 0;
+        inliers_idxs = [];
+        for a=1:size(associations_new,1) #for each association
+            assoc = associations_new(a,:);
+            if(assoc(3)< inlier_threshold)
+                inliers+=1;
+                inliers_idxs = [inliers_idxs, a];
+                cost+= assoc(3);
+            endif
+        endfor
+        #update if we found a better result
+        if (inliers > best_num_inliers) && (cost < best_cost)
+            R_best = R_new;
+            t_best = t_new;
+            best_cost = cost;
+            best_num_inliers = inliers;
+            
+        endif
+
+    endfor
+    
+   
+
+
+    X_cam = [R_best,t_best; 0 0 0 1];
+    X_robot = X_cam * inv(T); 
+    R_robot = X_robot(1:3,1:3);
+    t_robot = X_robot(1:3,4);
+    best_num_inliers
+    t = t_robot;
+    q = quaternionFromRotationMatrix(R_robot);
+    
+     
+
+endfunction
+
+
+#from 7d vector (translation | quaternions) to homogeneous matrix
+#this function is a modified version of v2t (found in the code provided during the course)
+#input: 7d vector v
+#output: matrix T
+function T=v2t_quaternion(v)
+    q = v(4:7);
+    q = q/norm(q); #normalize quaternion
+    R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+    T=eye(4);
+    T(1:3,1:3)=R;
+    T(1:3,4)=v(1:3);
+endfunction;
+
+# TODO check t2v
+function v=t2v(T)
+  v = zeros(6,1);
+  v(1:3) = T(1:3,4);
+  v(4:7) = quaternionFromRotationMatrix(T(1:3,1:3));
+endfunction
+
+
+#quaternion update: this function is used to convert a rotational offset
+#expressed wrt 3 angles in quaternions and update the state values qx,qy,qz,qw
+#input: q (current value in quaternions), dtheta (rotation expressed wrt 3 angles)
+#output: q_update (updated quaternion)
+function [q_update] =quaternion_update(q,dtheta);
+    #convert in rotation matrices 
+    rx=Rx(dtheta(1));
+    ry=Ry(dtheta(2));
+    rz=Rz(dtheta(3));
+    Rtot = rz*ry*rx;
+    #convert in quaternions
+    dq = quaternionFromRotationMatrix(Rtot);  
+    
+    #update values
+    q_update = quaternion_multiplication(dq,q);
+    q_update = q_update / norm(q_update);
+    
+  
+endfunction
+
+function [e,J]=errorAndJacobianRANSAC(x,p,z,cid, cameras)
+  t=x(1:3); #translation part
+  q=x(4:7); #rotation part (quaternions)
+  q = q / norm(q);
+  #get rotation matrix from quaternion
+  R = rotationMatrixFromQuaternion(q(1),q(2),q(3),q(4));
+  #cameras 
+  id = cid;#take the id of the camera that saw the point
+  c = cameras(id+1); #note: cameras(1) is corresponds to camera id 0
+  K = c.K;
+  T = c.T;
+   
+
+  #prediction and error
+  #project the point from world to camera coordinates using a function defined in the folder 'mytools'
+  [z_hat,p_cam_hat,p_cameraframe,p_robotframe] = projectWorldPoints(p,K,T,R,t);
+  
+
+  #ERROR----------------------------------------
+  e = z_hat - z;
+  
+
+  #JACOBIAN--------------------
+  #note:
+  #p_cam_hat = K*p_cameraframe
+  #p_cameraframe = X*p_world (with X transformation from camera to world)
+  R_camera = T(1:3,1:3);
+  Jproj = getJproj(p_cam_hat) ; #function defined in cameras_helper.m
+  Jicp(:,1:3) = R_camera';
+  px = skew(p_robotframe);
+  Jicp(:,4:6) = -(R_camera'*px);
+  J = Jproj*K*Jicp;
+  
+endfunction
+
+
+#this function takes a point in camera coordinates and applies the projection
+#operation to obtain pixel coordinates
+function [p_img] = projection(p)
+    xcam = p(1);
+    ycam = p(2);
+    zcam = p(3);
+    x = xcam/zcam;
+    y = ycam/zcam;
+    p_img = [x;y];
+end
