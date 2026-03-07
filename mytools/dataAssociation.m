@@ -46,7 +46,7 @@ endfunction
 #output: A 
 function A = getAssociationMatrix(P_Proj_c0, P_Proj_c1,P_Proj_c2,Z,R,t)
     [dimpoint,N] = size(P_Proj_c0); #number of points
-    M= size(Z); #number of measurements
+    M= length(Z); #number of measurements
     #init A 
     A = ones(M,N)*1e3;
 
