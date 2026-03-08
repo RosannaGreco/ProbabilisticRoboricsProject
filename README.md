@@ -3,9 +3,9 @@
 # Abstract
 The aim of the project was to estimate the position of a multi camera system observing a set of known 3D point landmarks. Three fixed cameras are mounted on the robot and provide 2D observations of the environment.
 
-The localization problem was adressed following three steps. Firstly, position tracking was performed using Projective ICP and assuming that the data association was known. The second step consisted in adding a robust Kernel and a data association policy in order to handle the unknown data association case. Finally, the global localization was handled using a RANSAC-based initialization in order to find a suitable initial guess.
+The localization problem was adressed following three steps. Firstly, position tracking was performed using Projective ICP and assuming that the data association was known. The second step consisted in adding a robust kernel and a data association policy in order to handle the unknown data association case. Finally, the global localization was handled using a RANSAC-based initialization in order to find a suitable initial guess.
 
-The proposed approach achieved an highly accurate trajectory estimation, with an error on the order of $10^-5$. 
+The proposed approach achieved an highly accurate trajectory estimation, with an error on the order of $10^{-5}$. 
 
 
 
