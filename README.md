@@ -26,13 +26,13 @@ After retrieving the position of the landmarks and the camera parameters, the pr
 
 The implementation of this part is in the `icp.m` file.
 ### ICP
-The ICP algorithm is and application of Least Squares used to compute the state of the robot starting from a set of points in the world frame and a set of observations seen by the robot (in this case, in the frame of the three cameras).
+The ICP algorithm is an application of Least Squares used to estimate the pose of the robot starting from a set of points in the world frame and a set of observations seen by the robot.
 
- The relative pose of the observer (expressed as the pose of the world wrt the robot) is estimated through the minimization of the distance between predictions and measurements (in the case of projective ICP, expressed on the image plane). 
+ The pose (expressed as the pose of the world wrt the robot) is found through the minimization of the distance between predictions and measurements (in the case of projective ICP, expressed on the image plane). 
 
 #### Problem definition
 ##### State and Boxplus operator
-The state is represented in the form of translation and an orientation expressed in quaternions.
+The state is represented in the form of a 7D vector, composed of translation and orientation (represented as a quaternions).
 
 x = [t q] = 
 [ tx ty tz qx qy qz qw ]
@@ -42,14 +42,14 @@ It can be expressed as a transformation matrix.
 X in SE(3):
 X = [ R | t ]
 
-We can hence define a perturbation in the euclidean space Δx in R^6 and the boxplus operator:
+We can therefore define a perturbation in the Euclidean space Δx in R^6 and the boxplus operator:
 
 $$
 X \boxplus \Delta x : v2t(\Delta x)X
 $$
 
 
-The 7d vector used as initial guess for ICP is expressed as the pose of the world wrt robot and converted in a transformation matrix $X$ by a function called `v2t_quaternion`. Subsequently, the state is updated applying the boxplus operation. 
+In the proposed implementation, the 7D vector used as initial guess for ICP is expressed as the pose of the world wrt robot and converted in a transformation matrix $X$ by a function called `v2t_quaternion`. Subsequently, the state is updated applying the boxplus operation. 
 
 A function named `t2v_quaternion` converts the estimated state $X_{result}$ in a 7d vector format, which is then expressed as robot wrt world, enabling a comparison with the ground truth pose. 
 
@@ -59,7 +59,8 @@ All the functions used to work with the 7d vector representation (i.e. to handle
 The measurements are the 2D image projections perceived by the cameras (expressed in pixels), and are condisered Euclidean. 
 
 z ∈ R^2  
-We don't need to define a boxminus operator.  
+
+Therefore, we don't need to define a boxminus operator.  
 
 The prediction is given by:
 
@@ -98,11 +99,12 @@ J_r = - R_camera^T * skew(p_robotframe)
 
 
 Where p_cam_hat is the point in the camera frame after the application of matrix K, p_robotframe is the point expressed in the robot frame and R_camera is the rotation matrix extracted from the transformation matrix of the camera.
+
 The `errorAndJacobian` function computes the error and the Jacobian according to the parameters of the camera the measurement is perceived from. 
 
 
 #### Algorithm
-The core ICP algorithm in the case of the manifold is described by the following schema: 
+The core Iterative Closest Point algorithm on the manifold can be summarized as follows: 
 
 <img src="images/icp.png" alt="ICP Algorithm" width="400"/>
 
@@ -125,7 +127,7 @@ A gating strategy is used to compute the associations, considering the projectio
 ### Third Step: Addressing the Global Localization Case with RANSAC
 RANSAC (Random Sample Consensus) is a methodology used for 3D point registration in order to estimate the pose when the correspondences and the initial guess are unknown. 
 
-It can be summed up as follows: 
+It can be summarized as follows: 
 - Firstly, a minimal set of correcpondences is sampled from the candidate ones
 - Then an alignment is computed
 - Said alignment is used to determine the number of good/bad correspondences
@@ -201,9 +203,11 @@ Here we can see some plots displaying the behavior of the single components of t
     <img src="output/qw_error_evolution.png" alt="qw_error_evolution" width="400"/>
 </p>
 
+# Repository Structure
 
+<img src="images/rep_structure.png" alt="repository structure" width="700"/>
 
-# How to test the code
+# How to perform a test
 In order to test the code, it is sufficient to run the `main.m` file. The new output files `poses.dat` and `error.dat` will be created in the main folder.
 
 In order to plot the new obtained results using `visualize_traj.py` or `visualize_error.py`, the paths of the output files should be changed.
