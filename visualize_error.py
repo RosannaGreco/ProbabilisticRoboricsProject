@@ -29,12 +29,12 @@ ax = fig.add_subplot(111)
 
 #fig, ax = plt.subplots()
 
-ax.plot(y_err, label="y error", color="green")
+ax.plot(qz_err, label="qz error", color="magenta")
 
 ax.set_xlabel("epoch")
 ax.set_ylabel("error")
 ax.ticklabel_format(style='plain', axis='y')
-ax.set_ylim(-0.00001, 0.00001)
+ax.set_ylim(-0.001, 0.001)
 ax.legend()
 
 plt.show()

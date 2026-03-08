@@ -1,19 +1,26 @@
 # Multi-PICP localization Project
 
 # Abstract
-The aim of the project was to estimate the position of a multi camera system provided with three fixed cameras observing a set of known 3D point landmarks. 
+The aim of the project was to estimate the position of a multi camera system observing a set of known 3D point landmarks. Three fixed cameras are mounted on the robot and provide 2D observations of the environment.
+
+The localization problem was adressed following three steps. Firstly, position tracking was performed using Projective ICP and assuming that the data association was known. The second step consisted in adding a robust Kernel and a data association policy in order to handle the unknown data association case. Finally, the global localization was handled using a RANSAC-based initialization in order to find a suitable initial guess.
+
+The proposed approach achieved an highly accurate trajectory estimation, with an error on the order of $10^-5$. 
+
+
 
 # Methodology
 ## First Step: Position Tracking with Known Data Association
-In the first step, a Projective ICP schema was implemented in order to address the problem considering the known data association case.
+In the first step, a PICP (Projective Iterative Closest Point) schema was implemented in order to address the problem considering the known data association case.
 
 The provided data included: 
-- map.dat, containing the position of the landmarks in the world reference frame.
-- param.dat, containing information about the cameras mounted on the robot.
-- meas.dat, containing the 2D coordinates measurements captured by the cameras during each epoch, plus some additional information:
+- `map.dat`, containing the position of the landmarks in the world reference frame.
+- `param.dat`, containing information about the cameras mounted on the robot.
+- `meas.dat`, containing the 2D coordinates measurements captured by the cameras during each epoch, plus some additional information:
     - camera_id
     - landmark_id 
-- traj.dat, the ground truth of the trajectory. 
+- `traj.dat`, the ground truth of the trajectory. 
+
 
 After retrieving the position of the landmarks and the camera parameters, the problem was addressed following the Projective ICP schema presented during the course.
 
@@ -21,11 +28,11 @@ The implementation of this part is in the `icp.m` file.
 ### ICP
 The ICP algorithm is and application of Least Squares used to compute the state of the robot starting from a set of points in the world frame and a set of observations seen by the robot (in this case, in the frame of the three cameras).
 
- This is done by estimating the pose that minimizes the distance between corresponding points (in particular, we calculate the pose of the world wrt the robot).
+ The relative pose of the observer (expressed as the pose of the world wrt the robot) is estimated through the minimization of the distance between predictions and measurements (in the case of projective ICP, expressed on the image plane). 
 
 #### Problem definition
 ##### State and Boxplus operator
-The state was provided in the form of translation and an orientation expressed in quaternions.
+The state is represented in the form of translation and an orientation expressed in quaternions.
 
 x = [t q] = 
 [ tx ty tz qx qy qz qw ]
@@ -49,7 +56,7 @@ A function named `t2v_quaternion` converts the estimated state $X_{result}$ in a
 All the functions used to work with the 7d vector representation (i.e. to handle quaternions) are stored in a file called `quaternions_helper.m`. 
 
 ##### Measurements and Prediction
-The measurements are the 2D coordinates of the points perceived by the cameras, and can be condisered Euclidean. 
+The measurements are the 2D image projections perceived by the cameras (expressed in pixels), and are condisered Euclidean. 
 
 z ∈ R^2  
 We don't need to define a boxminus operator.  
@@ -63,11 +70,11 @@ h^[n](X) = proj(K * T^-1 * X * p_world)
 To project a point, we apply the following transformations:
 - bring the point in the robot frame using the estimated transformation X (expressed as world wrt robot). The first tests were performed considering the gt of the first pose.
 - bring the point in the camera frame using the camera transformation matrix T provided in `param.dat`. 
-- compute the 2d coordinated of the point applying the camera matrix $K$ and projecting 
+- compute the 2d coordinated of the point on the image plane applying the camera matrix $K$ and projecting.
 
 $p_{img} = proj(KT^{-1}X p_{world})$, with $proj(p) = ( \frac{x}{z} , \frac{y}{z} )$
 
-During this first step (considering known data association), for each measurement, it was possible to access the landmark id of the point. So each world point was projected according to the parameters from which the measurement came from.
+During this first step (considering known data association), for each measurement, it was possible to access the landmark id of the point. So each world point was projected according to the parameters from which the measurement came from in order to compute the projection error.
 
 
 ##### Error and Jacobian
@@ -128,7 +135,7 @@ It can be summed up as follows:
 So, in the last step of the project, the global localization case was addressed in order to compute an initial guess to be used by ICP. 
 The code of this part is in the `Ransac.m` file.
 
-In the proposed implementation, the global localization case is addressed running RANSAC on one of the cameras (camera 0). The pose used for the first initialization is the identity. 
+In the proposed implementation, the global localization case was addressed running RANSAC on one of the cameras (camera 0). The pose used for the first initialization is the identity. 
 
 At each iteration: 
 - Candidate correspondences are built projecting the points according to the best estimation found (during the first iteration, the identity) and handling data association with the same strategy used for the previous step, but with a less restrictive value for gating tau. 
@@ -144,7 +151,7 @@ Finally, the best solution is refined using all the inliers found.
 # Results and Plots
 The system computes an accurate estimate of the whole trajectory, with a trajectory error in the order of $10^{-5}$. 
 ## Trajectory Plots
-The images below shows a comparison between the estimated trajectory (red) and the ground truth trajectory (blue). A file containing all the estimated poses (`poses.dat`)  is contained in the output folder. 
+The images below shows a comparison between the estimated trajectory (red) and the ground truth (blue). A file containing all poses estimated by the system (`poses.dat`)  is contained in the output folder. 
 
 <p align="center">
     <img src="output/gt_trajectory.png" alt="Trajectory Plot gt" width="300"/>
@@ -156,9 +163,8 @@ The images below shows a comparison between the estimated trajectory (red) and t
 
 
 ## ICP error evolution
-The below plots were obtained running ICP in order to estimate the pose of the first epoch starting from different initial guesses. 
+The below plots were obtained running ICP in order to estimate the pose of the first epoch starting from different initial guesses. As we can see, the performance of Iterative Closest Point depends from the suitability of the provided initial guess.
 
-The two images below show the error obtained with a good initial guess and a bad initial guess. 
 <p align="center">
     <img src="output/icp_error_good_initial_guess.png" alt="icp_error_good_init_guess" width="400"/>
     <img src="output/icp_error_bad_initial_guess.png" alt="icp_error_bad_init_guess" width="400"/>
@@ -167,7 +173,7 @@ The two images below show the error obtained with a good initial guess and a bad
 
 
 ## Trajectory error evolution 
-The table below shows the trajectory error computed during the first epochs. As we can see, the values remain on the order of $10^{-5}$. The output folder contains a file (`error.dat`) storing the error values during the whole trajectory.
+The table below shows the trajectory error computed during the first epochs (including epoch 0, in which the pose was estimated running RANSAC). The values remain on the order of $10^{-5}$. The output folder contains a file (`error.dat`) storing the error values collected during the whole trajectory.
 
 | Epoch | tx | ty | tz | qx | qy | qz | qw |
 |------|------|------|------|------|------|------|------|
