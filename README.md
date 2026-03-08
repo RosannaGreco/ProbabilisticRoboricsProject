@@ -3,7 +3,7 @@
 # Abstract
 The aim of the project was to estimate the position of a multi camera system observing a set of known 3D point landmarks. Three fixed cameras are mounted on the robot and provide 2D observations of the environment.
 
-The localization problem was adressed following three steps. Firstly, position tracking was performed using Projective ICP and assuming that the data association was known. The second step consisted in adding a robust kernel and a data association policy in order to handle the unknown data association case. Finally, the global localization was handled using a RANSAC-based initialization in order to find a suitable initial guess.
+The localization problem was approached following three steps. Firstly, position tracking was performed using Projective ICP and assuming that the data association was known. The second step consisted in adding a robust kernel and a data association policy in order to handle the unknown data association case. Finally, the global localization problem was addressed using a RANSAC-based initialization in order to find a suitable initial guess.
 
 The proposed approach achieved an highly accurate trajectory estimation, with an error on the order of $10^{-5}$. 
 
@@ -11,18 +11,18 @@ The proposed approach achieved an highly accurate trajectory estimation, with an
 
 # Methodology
 ## First Step: Position Tracking with Known Data Association
-In the first step, a PICP (Projective Iterative Closest Point) schema was implemented in order to address the problem considering the known data association case.
+In the first step, a PICP (Projective Iterative Closest Point) schema was implemented in order to estimate the robot pose at each epoch, considering the known data association case.
 
 The provided data included: 
 - `map.dat`, containing the position of the landmarks in the world reference frame.
 - `param.dat`, containing information about the cameras mounted on the robot.
-- `meas.dat`, containing the 2D coordinates measurements captured by the cameras during each epoch, plus some additional information:
+- `meas.dat`, containing the 2D coordinates of the measurements captured by the cameras during each epoch, plus some additional information:
     - camera_id
     - landmark_id 
 - `traj.dat`, the ground truth of the trajectory. 
 
 
-After retrieving the position of the landmarks and the camera parameters, the problem was addressed following the Projective ICP schema presented during the course.
+After retrieving the position of the landmarks on the map and the camera parameters, the problem was addressed following the Projective ICP schema presented during the course.
 
 The implementation of this part is in the `icp.m` file.
 ### ICP
@@ -75,11 +75,11 @@ To project a point, we apply the following transformations:
 
 $p_{img} = proj(KT^{-1}X p_{world})$, with $proj(p) = ( \frac{x}{z} , \frac{y}{z} )$
 
-During this first step (considering known data association), for each measurement, it was possible to access the landmark id of the point. So each world point was projected according to the parameters from which the measurement came from in order to compute the projection error.
+During this first step, the data association was assumed to be known. So, for each measurement, the corresponding landmark ID was retrieved accessing the corresponding field in the measurement struct. Each world point was hence projected according to the parameters of the camera from which the measurement came from in order to compute the projection error. The unknown data association case was addressed during the second step.
 
 
 ##### Error and Jacobian
-The error can be defined as the difference between prediction and measurement.
+The error can be defined as the difference between prediction and measurement. 
 
 e^[n,m](X) = h^[n](X) - z^[m]  
 
@@ -117,9 +117,9 @@ In the proposed implementation, for each epoch, the algorithm takes the result c
 In the second step, a robust kernel was added to the ICP algorithm in order to lessen the contribution of outliers. Furthermore, the unknown data association case was addressed. 
 
 ### Data Association 
-The data association is addressed using a nearest neighbor strategy. This part is handled in the `dataAssociation.m` file.
+The data association was handled using a nearest neighbor strategy. The implementation of this part is in the `dataAssociation.m` file.
 
-Firstly, all the landmarks are projected in the cameras according to $X$, forming three matrices (one for each camera). Then, for each measurement, the association matrix is computed taking in account the matrix obtained considering the camera from which the measurement was perceived. 
+Firstly, all the landmarks are projected in the cameras according to $X$, forming three matrices (one for each camera). Then, for each measurement, the association matrix is computed taking in account the matrix obtained considering the camera from which the measurement was perceived.
 
 A gating strategy is used to compute the associations, considering the projection error. In our case, the same landmark can be observed by two cameras in the same epoch (and appear in a different position in each of them, because the cameras are mounted on the robot with different positions and orientations), so we cannot assume that one landmark should be paired with just one measurement. 
 
@@ -134,18 +134,20 @@ It can be summarized as follows:
 - The 'consensus' of the guess is computed as a function of the number of inliers and the error
 - The whole procedure is repeated N times, and at each time the best solution is kept
 - Then the inliers are used to refine the solution
+
+
 So, in the last step of the project, the global localization case was addressed in order to compute an initial guess to be used by ICP. 
 The code of this part is in the `Ransac.m` file.
 
-In the proposed implementation, the global localization case was addressed running RANSAC on one of the cameras (camera 0). The pose used for the first initialization is the identity. 
+In the proposed implementation, run RANSAC on one of the cameras (camera 0). The pose used for the first initialization is the identity. 
 
 At each iteration: 
 - Candidate correspondences are built projecting the points according to the best estimation found (during the first iteration, the identity) and handling data association with the same strategy used for the previous step, but with a less restrictive value for gating tau. 
-- 10 correspondences are selected randomly among the candidates
-- Said correspondences are used to compute a new pose with ICP (in this case, we call a different function (`doIcpRANSAC`), which doesn't handle the data association part in the loop). The best soultion found is used as initial guess
+- 10 correspondences are selected randomly among the candidates. If the computed candidates are less than 10, all of them are used. 
+- Said correspondences are given as an input to ICP to estimate an alignment (in this case, we call a different function called `doIcpRANSAC`, which doesn't handle the data association part in the loop). ICP is initialized using the best estimation found as an initial guess (in the first iteration, the identity).
 - The landmarks are projected in the new pose estimated by ICP
 - The number of inliers is computed according to the chosen gating tau, which works as a threshold. We also calculate the cost summing the distance values.
-- If the result is better in terms of inliers and cost, or if the number of inliers is the same, but we have a lower cost, R_best and t_best are updated
+- If the result is better in terms of inliers and cost, or if the number of inliers is the same, but we have a lower cost, R_best and t_best are updated.
 
 
 Finally, the best solution is refined using all the inliers found. 
@@ -153,7 +155,7 @@ Finally, the best solution is refined using all the inliers found.
 # Results and Plots
 The system computes an accurate estimate of the whole trajectory, with a trajectory error in the order of $10^{-5}$. 
 ## Trajectory Plots
-The images below shows a comparison between the estimated trajectory (red) and the ground truth (blue). A file containing all poses estimated by the system (`poses.dat`)  is contained in the output folder. 
+The images below shows a comparison between the estimated trajectory (red) and the ground truth (blue). 
 
 <p align="center">
     <img src="output/gt_trajectory.png" alt="Trajectory Plot gt" width="300"/>
@@ -162,7 +164,6 @@ The images below shows a comparison between the estimated trajectory (red) and t
     
     
 </p>
-
 
 ## ICP error evolution
 The below plots were obtained running ICP in order to estimate the pose of the first epoch starting from different initial guesses. As we can see, the performance of Iterative Closest Point depends from the suitability of the provided initial guess.
@@ -175,7 +176,7 @@ The below plots were obtained running ICP in order to estimate the pose of the f
 
 
 ## Trajectory error evolution 
-The table below shows the trajectory error computed during the first epochs (including epoch 0, in which the pose was estimated running RANSAC). The values remain on the order of $10^{-5}$. The output folder contains a file (`error.dat`) storing the error values collected during the whole trajectory.
+The table below shows the trajectory error computed during the first epochs (including epoch 0, in which the pose was estimated running RANSAC). The values remain on the order of $10^{-5}$ during the whole trajectory. 
 
 
 | Epoch | tx | ty | tz | qx | qy | qz | qw |
@@ -207,6 +208,12 @@ Here we can see some plots displaying the behavior of the single components of t
 # Repository Structure
 
 <img src="images/rep_structure.png" alt="repository structure" width="700"/>
+
+The output repository contains two output files: 
+- `poses.dat` displaying the estimated pose of each epoch.
+- `error.dat` containing the trajectory errors collected during the whole trajectory.
+
+The plots and the table in the previous section were obtained considering this experiment and are stored in the same folder.
 
 # How to perform a test
 In order to test the code, it is sufficient to run the `main.m` file. The new output files `poses.dat` and `error.dat` will be created in the main folder.
