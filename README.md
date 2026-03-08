@@ -177,6 +177,7 @@ The below plots were obtained running ICP in order to estimate the pose of the f
 ## Trajectory error evolution 
 The table below shows the trajectory error computed during the first epochs (including epoch 0, in which the pose was estimated running RANSAC). The values remain on the order of $10^{-5}$. The output folder contains a file (`error.dat`) storing the error values collected during the whole trajectory.
 
+
 | Epoch | tx | ty | tz | qx | qy | qz | qw |
 |------|------|------|------|------|------|------|------|
 | 0 (ransac) | 0.000016| -0.000009| -0.000008 |0.000044| 0.000049| -0.000045 |0.000000|
