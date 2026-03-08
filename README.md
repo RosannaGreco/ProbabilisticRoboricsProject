@@ -117,11 +117,18 @@ In the proposed implementation, for each epoch, the algorithm takes the result c
 In the second step, a robust kernel was added to the ICP algorithm in order to lessen the contribution of outliers. Furthermore, the unknown data association case was addressed. 
 
 ### Data Association 
-The data association was handled using a nearest neighbor strategy. The implementation of this part is in the `dataAssociation.m` file.
+The data association problem consists in determining which landmark is responsible of a measurement. In general, the best association is chosen aiming to maximize the joint likelihood of the measurements. 
 
-Firstly, all the landmarks are projected in the cameras according to $X$, forming three matrices (one for each camera). Then, for each measurement, the association matrix is computed taking in account the matrix obtained considering the camera from which the measurement was perceived.
+The implementation of the data association part is in the `dataAssociation.m` file. 
 
-A gating strategy is used to compute the associations, considering the projection error. In our case, the same landmark can be observed by two cameras in the same epoch (and appear in a different position in each of them, because the cameras are mounted on the robot with different positions and orientations), so we cannot assume that one landmark should be paired with just one measurement. 
+Firstly, all the landmarks are projected in the cameras according to $X$, forming three matrices (one for each camera). 
+
+Then, for each measurement, the association matrix is computed assembling all the costs (i.e. projection errors). Knowing the camera id of each measurement, we can take compare the 2D coordinates of the measurement with the 2D coordinates obtained projecting the landmarks in the camera from which the measurement was perceived.
+
+A gating strategy is used to compute the best associations, considering that the same landmark can be observed by two cameras in the same epoch. So we ignore all the associations whose cost is higher than a certain threshold tau. 
+
+- if $a_{mn}$ < tau, the association is accepted
+- otherwise, it is discarded 
 
 
 ### Third Step: Addressing the Global Localization Case with RANSAC
