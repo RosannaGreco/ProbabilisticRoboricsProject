@@ -21,6 +21,17 @@ disp('camera parameters loaded');
 
 
 
+
+#this function computes the error between two poses
+#inputs: x_result, x_gt (expressed as 7d vectors)
+#output: error e (expressed as 7d vector)
+function e = computeTrajectoryError(x_result,x_gt)
+    X_result = v2t_quaternion(x_result);
+    X_gt = v2t_quaternion(x_gt);
+    E = inv(X_gt)*X_result; 
+    e = t2v_quaternion(E);
+endfunction
+
 #function performing icp for one epoch
 #inputs: 
 # fids of the files to read measurements and write computed poses (see below)
@@ -52,15 +63,8 @@ function [x_result,x_robotpose, e] = icpOneEpoch(fid, fid_traj_check,x_guess,P_w
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_robotpose'); 
 
     #error between robot pose and gt 
-    e = gt_pose - x_robotpose;
-
-    #handle quaternion representation
-    q_gt = gt_pose(4:7);
-    q_robotpose = x_robotpose(4:7);
-    if dot(q_gt, q_robotpose) < 0
-        q_robotpose_changed = -q_robotpose;
-        e(4:7) = q_gt-q_robotpose_changed;
-    end
+    e = computeTrajectoryError(x_robotpose, gt_pose);
+   
     disp('trajectory error:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', e); 
 
@@ -94,7 +98,7 @@ disp('ransac guess:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', x_guess_r); 
 #compute trajectory error
 gt_pose = read_gt_trajectory(fid_traj_check) #retrieve gt pose
-err = gt_pose - x_guess_r; #compute error
+err = computeTrajectoryError(x_guess_r,gt_pose); #compute error
 
 disp('error:')
     fprintf('%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n', err); 

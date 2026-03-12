@@ -166,7 +166,7 @@ The images below shows a comparison between the estimated trajectory (red) and t
 
 <p align="center">
     <img src="output/gt_trajectory.png" alt="Trajectory Plot gt" width="300"/>
-    <img src="output/estimated_trajectory.png" alt="Trajectory Plot est" width="300"/>
+    <img src="output/estimated_trajectory.png" alt="Trajectory Plot est" width="305"/>
     <img src="output/trajectory.png" alt="Trajectory Plot" width="400"/>
     
     
@@ -183,35 +183,36 @@ The below plots were obtained running ICP in order to estimate the pose of the f
 
 
 ## Trajectory error evolution 
-The table below shows the trajectory error computed during the first epochs (including epoch 0, in which the pose was estimated running RANSAC). The values remain on the order of $10^{-5}$ during the whole trajectory. 
+The table below shows the trajectory error computed during the first epochs (including epoch 0, in which the pose was estimated running RANSAC). Such error is computed as the relative transformation between the ground truth and the estimated pose. 
 
 
 | Epoch | tx | ty | tz | qx | qy | qz | qw |
 |------|------|------|------|------|------|------|------|
-| 0 (ransac) | 0.000016| -0.000009| -0.000008 |0.000044| 0.000049| -0.000045 |0.000000|
-| 1 |0.000013 |0.000003 |0.000019 |0.000034| 0.000025| 0.000004| 0.000000|
-| 2 | 0.000009| 0.000003| 0.000009| -0.000008| 0.000012| 0.000001 |0.000001|
-| 3 | 0.000006| 0.000000| 0.000011 |0.000035 |-0.000016| -0.000022| 0.000004|
-| 4 |  0.000002 |-0.000014| 0.000015| 0.000008| -0.000022| -0.000048| 0.000007|
-| 5 | 0.000010| -0.000037 |0.000006| 0.000015| 0.000035| 0.000048| 0.000013|
-|6  | 0.000001| 0.000028 |0.000008 |0.000023| -0.000002| -0.000005| 0.000020|
-|7 | 0.000005 |-0.000025| -0.000003 |0.000010 |-0.000022 |0.000041 |0.000021|
-|8 | 0.000005| 0.000019| -0.000010 |0.000000 |0.000015| -0.000044| 0.000027|
-|9 | 0.000005| 0.000047| -0.000013| 0.000038| -0.000045| -0.000045| 0.000032|
-|10 | 0.000004| -0.000040| -0.000021| -0.000038| -0.000009 |0.000010| 0.000037|
-|11 | 0.000007| -0.000041| -0.000029| 0.000011| 0.000020 |-0.000022| 0.000044|
+| 0 (ransac) | 0.000014| 0.000006| -0.000018| -0.000044| -0.000049| 0.000044| 1.000000|
+| 1 |-0.000013 | -0.000003| -0.000019| -0.000034| -0.000025| -0.000004| 1.000000|
+| 2 |-0.000009| -0.000003| -0.000009| 0.000008| -0.000012| -0.000001| 1.000000|
+| 3 | -0.000006 | -0.000000| -0.000011| -0.000034| 0.000016| 0.000022| 1.000000|
+| 4 |  -0.000002| 0.000014| -0.000015| -0.000008| 0.000022| 0.000048| 1.000000|
+| 5 | -0.000009| 0.000038| -0.000006| -0.000015| -0.000035| -0.000048| 1.000000|
+|6  | -0.000001| -0.000028| -0.000008| -0.000023| 0.000002 | 0.000005| 1.000000|
+|7 | -0.000005| 0.000025| 0.000003| -0.000010| 0.000023| -0.000041| 1.000000|
+|8 | -0.000005| -0.000019| 0.000010| -0.000001| -0.000015| 0.000045| 1.000000|
+|9 | -0.000006 |-0.000047| 0.000013| -0.000038| 0.000045| 0.000046| 1.000000|
+|10 |-0.000003| 0.000040| 0.000021| 0.000038| 0.000009 |-0.000010| 1.000000|
+|11 | -0.000006| 0.000041 | 0.000029| -0.000011| -0.000019| 0.000022| 1.000000|
 
-Here we can see some plots displaying the behavior of the single components of the error during the whole trajectory.
+Here we can see some plots displaying the behavior of the translational error during the whole trajectory.
 <p align="center">
     <img src="output/x_error_evolution.png" alt="x_error_evolution" width="400"/>
     <img src="output/y_error_evolution.png" alt="y_error_evolution" width="400"/>
     <img src="output/z_error_evolution.png" alt="z_error_evolution" width="400"/>
-    <img src="output/qx_error_evolution.png" alt="qx_error_evolution" width="400"/>
-    <img src="output/qy_error_evolution.png" alt="qy_error_evolution" width="400"/>
-    <img src="output/qz_error_evolution.png" alt="qz_error_evolution" width="400"/>
-    <img src="output/qw_error_evolution.png" alt="qw_error_evolution" width="400"/>
 </p>
-
+And some plots of the obtained rotational errors (expressed in terms of roll, pitch and yaw)
+<p align="center">
+    <img src="output/roll_error_evolution.png" alt="x_error_evolution" width="400"/>
+    <img src="output/pitch_error_evolution.png" alt="y_error_evolution" width="400"/>
+    <img src="output/yaw_error_evolution.png" alt="z_error_evolution" width="400"/>
+</p>
 # Repository Structure
 
 <img src="images/rep_structure.png" alt="repository structure" width="700"/>
